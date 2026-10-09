@@ -1,0 +1,13 @@
+# Optional PostgreSQL for the "postgres" profile. H2 (the default) needs no setup.
+#   export POSTGRES_PASSWORD=<choose-a-local-password>
+#   docker compose up -d
+#   DB_PASSWORD=$POSTGRES_PASSWORD SPRING_PROFILES_ACTIVE=postgres mvn spring-boot:run
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: userdb
+      POSTGRES_USER: workshop
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD before starting}
+    ports:
+      - "5432:5432"

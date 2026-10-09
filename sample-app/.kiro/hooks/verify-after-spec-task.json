@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "verify-after-spec-task",
+      "description": "After each spec task, run one clean Maven build. On success the agent gets the 'Tests run' summary and BUILD SUCCESS (so it does not need to build again); on failure it gets the last 80 lines on stderr.",
+      "trigger": "PostTaskExec",
+      "action": {
+        "type": "command",
+        "command": "out=$(mvn -B clean verify 2>&1); rc=$?; printf '%s\\n' \"$out\" | grep -E 'Tests run:|BUILD (SUCCESS|FAILURE)' | tail -n 2; if [ \"$rc\" -ne 0 ]; then printf '%s\\n' \"$out\" | tail -n 80 1>&2; fi; exit \"$rc\""
+      },
+      "timeout": 900,
+      "enabled": true
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "jakarta-import-guard",
+      "description": "From stage 2 on: when the agent saves a Java file that still imports a Jakarta EE API from javax.*, report it back to the agent. Enable this hook in Module 3.",
+      "trigger": "PostFileSave",
+      "matcher": "\\.java$",
+      "action": {
+        "type": "command",
+        "command": "if grep -nE '^import (static )?javax\\.((persistence|validation|servlet|inject|jms|mail|websocket|ejb|faces|el|xml\\.bind|xml\\.ws|ws\\.rs)\\.|annotation\\.(PostConstruct|PreDestroy|Resource|security\\.)|transaction\\.[A-Z*])' \"{{filePath}}\" 1>&2; then echo 'Jakarta EE API still imported from javax.* - migrate it to jakarta.* (JDK packages such as javax.sql or javax.transaction.xa stay).' 1>&2; exit 1; fi"
+      },
+      "enabled": false
+    }
+  ]
+}

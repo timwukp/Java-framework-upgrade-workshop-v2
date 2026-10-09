@@ -1,0 +1,478 @@
+# Participant setup (complete before the workshop day, about 45 minutes)
+
+Set up your machine before the day. Module 1 assumes you already have a green baseline build on JDK 8.
+If you arrive without one, you lose most of Module 1.
+
+> **Supported: macOS and Linux.** The workshop's hooks and the commands in every module are POSIX
+> shell (`grep`, `sed`, `$(…)`, `1>&2`). On Windows, use a Linux VM or a cloud desktop. WSL2 is
+> untested.
+
+## What you'll do
+
+1. Install three JDKs (8, 21, 25) and learn to switch between them per terminal.
+2. Install Maven 3.9+, Git, Python 3, curl and (optionally) Docker.
+3. Install Kiro IDE 1.x, sign in, and check your plan and credits.
+4. Install the Java and Spring Boot extension packs from Open VSX.
+5. Clone the repository, open `sample-app/` in Kiro with `kiro .`, and trust it.
+6. Run the baseline build on JDK 8 and write down the test count.
+7. Pre-download the dependencies and Maven plugins for every stage.
+
+## Prerequisites
+
+- A macOS or Linux laptop where you can install software. On a managed corporate laptop, ask your IT
+  team about installer permissions, the network proxy and approval for JDK 21 and 25 *before* the day.
+- Network access to download JDKs, Maven dependencies (Maven Central or your company mirror) and Kiro.
+- The repository URL, which your instructor sends you.
+- The optional labs (Module 4's appendix, Modules 6 and 7) list their own extra prerequisites at the top
+  of each module. You don't need them for the core day.
+
+> Material checked against the Kiro docs on 2026-10-09. Kiro ships often. Where the UI differs from
+> this page, the [Kiro docs](https://kiro.dev/docs/) win.
+
+---
+
+## 1. JDKs 8, 21 and 25
+
+You need all three because the workshop moves the sample app in stages:
+
+| JDK | Used in | Why |
+|---|---|---|
+| 8 | Module 1 (and the start of Module 2) | The baseline is Java 8 + Spring Boot 2.2.4. It must build on JDK 8. |
+| 21 | Modules 2 and 3 (and the start of Module 4) | Spring Boot 2.7.18 and 3.5.x run on Java 21. |
+| 25 | Modules 4 and 5 | Final target: Java 25 + Spring Boot 4.1. |
+
+**Recommended distribution: Amazon Corretto.** Kiro's Java guide recommends "Amazon Corretto for a free,
+production-ready distribution of OpenJDK". Any OpenJDK build of the same versions works. The guide
+recommends JDK 17 or newer for everyday work; this workshop also needs JDK 8 because the starting point
+is a Java 8 application.
+
+- Downloads: <https://aws.amazon.com/corretto/>
+- Docs: [Kiro Java guide](https://kiro.dev/docs/guides/languages-and-frameworks/java-guide/)
+
+> **No JDK 25 approved yet?** Spring Boot 4.1 runs on Java 17 or later, so you can finish stage 3 on
+> JDK 21 with `java.version` 21. You skip only the Java 25 step (Module 4, Part 4). Tell the instructor
+> before the day.
+
+Install the three JDKs with **one** of the options below.
+
+### Option A: SDKMAN (macOS, Linux)
+
+SDKMAN installs several JDKs side by side and switches them per terminal.
+
+```bash
+curl -s "https://get.sdkman.io" | bash
+```
+
+Open a new terminal, then list the Corretto builds (identifiers end in `-amzn`) and install the newest
+8, 21 and 25 builds:
+
+```bash
+sdk list java | grep amzn
+sdk install java <8.x-identifier>-amzn
+sdk install java <21.x-identifier>-amzn
+sdk install java <25.x-identifier>-amzn
+```
+
+Replace each `<…-identifier>` with the exact value shown by `sdk list java`.
+
+### Option B: installers (macOS, Linux)
+
+Download the Corretto 8, 21 and 25 packages for your OS and CPU from <https://aws.amazon.com/corretto/>.
+On macOS use the `.pkg` files. On Linux use the `.deb` or `.rpm` packages; they usually install under
+`/usr/lib/jvm/` (check with `ls /usr/lib/jvm`).
+
+### Switch the JDK per terminal
+
+Maven uses the JDK that `JAVA_HOME` points to. Switching per terminal lets you keep, for example, a
+JDK 8 terminal and a JDK 21 terminal open at the same time.
+
+**SDKMAN:**
+
+```bash
+sdk use java <8.x-identifier>-amzn
+```
+
+`sdk use` changes the current terminal only. `sdk default java <identifier>` changes the default for
+new terminals.
+
+**macOS without SDKMAN:** `/usr/libexec/java_home` finds installed JDKs by version.
+
+```bash
+/usr/libexec/java_home -V
+export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)
+export PATH="$JAVA_HOME/bin:$PATH"
+```
+
+Java 8 registers as version `1.8`; later JDKs use their major number, for example
+`/usr/libexec/java_home -v 21` or `-v 25`. A small helper in `~/.zshrc` saves typing:
+
+```bash
+jdk() { export JAVA_HOME=$(/usr/libexec/java_home -v "$1"); export PATH="$JAVA_HOME/bin:$PATH"; java -version; }
+```
+
+Then run `jdk 1.8`, `jdk 21` or `jdk 25` in any terminal.
+
+**Linux without SDKMAN:** point `JAVA_HOME` at the JDK folder.
+
+```bash
+ls /usr/lib/jvm
+export JAVA_HOME=/usr/lib/jvm/<jdk-folder>
+export PATH="$JAVA_HOME/bin:$PATH"
+```
+
+A helper in `~/.bashrc` (or `~/.zshrc`): `jdk() { export JAVA_HOME="/usr/lib/jvm/$1"; export PATH="$JAVA_HOME/bin:$PATH"; java -version; }`,
+then `jdk <jdk-folder>`. `update-alternatives --config java` changes only the system-wide `java`
+command; Maven prefers `JAVA_HOME` when it is set, so set `JAVA_HOME`.
+
+### Make JDK 8 the default, and start Kiro from that terminal
+
+The Kiro agent and the hooks run commands on your machine with the environment Kiro was started with.
+A Kiro started from the Dock or an app launcher may not use the JDK your terminal uses. So every time
+the active JDK changes (now, in Module 2, in Module 4, and after a reset):
+
+1. Make the JDK the default for new terminals: `sdk default java …`, or the `export JAVA_HOME=…` line
+   in `~/.zshrc` or `~/.bashrc`.
+2. Quit Kiro completely.
+3. Open a new terminal, check `mvn -v`, and start Kiro from `sample-app/` with `kiro .`
+   ([Your first project](https://kiro.dev/docs/getting-started/first-project/)).
+
+Before the day, do this once with **JDK 8**. In Module 1 you ask the agent to run `mvn -v` to confirm
+it sees JDK 8.
+
+> Verify: if your shell says `kiro: command not found`, add the `kiro` command to your PATH. On macOS,
+> Code OSS-based editors offer a Command Palette action such as **Shell Command: Install 'kiro' command
+> in PATH**; check the name in your build. Linux packages usually install the command.
+
+### Verify
+
+```bash
+java -version
+```
+
+Look for `1.8.0_…` in a JDK 8 terminal. Switch to 21 and 25 and confirm each reports its version.
+
+---
+
+## 2. Maven 3.9+, Git, Python 3, curl, optional Docker
+
+| Tool | Version | Install | Check |
+|---|---|---|---|
+| Maven | 3.9 or later | <https://maven.apache.org/download.cgi>, SDKMAN (`sdk install maven`), or your package manager | `mvn -v` |
+| Git | 2.23 or later (for `git switch`) | <https://git-scm.com/downloads> or your package manager | `git --version` |
+| Python 3 | any 3.x | macOS: comes with the Xcode Command Line Tools (the first `python3` offers to install them; do it before the day). Linux: your package manager | `python3 --version` |
+| curl | any | Preinstalled on macOS; Linux: your package manager | `curl --version` |
+| Docker | any current version, **optional** | Docker Desktop or another container runtime | `docker compose version` |
+
+Modules 5 and 7 use `python3` for small JSON checks, and Modules 2–4 use `curl` to call the running
+app. Docker is only needed if you want to run the sample app against PostgreSQL
+(`docker-compose.yml`). The default database is in-memory H2, so the workshop works without Docker.
+
+### Verify
+
+```bash
+mvn -v
+git --version
+python3 --version
+curl --version
+```
+
+`mvn -v` prints the Maven version **and** the Java version Maven runs on. In a JDK 8 terminal, look for
+`Apache Maven 3.9.…` and `Java version: 1.8.0_…`.
+
+**Behind a corporate proxy or mirror?** Configure `~/.m2/settings.xml` (proxy or mirror) before the
+day. The first build downloads many dependencies.
+
+---
+
+## 3. Kiro IDE 1.x
+
+### Install
+
+Follow the official installation page: <https://kiro.dev/docs/getting-started/installation/>.
+
+- Kiro IDE runs on macOS (Intel and Apple Silicon) and Linux (Ubuntu 24+, Debian 13+, Fedora 40+,
+  Arch, Mint 22+) on x86_64 or ARM64. It also runs on Windows 10/11, but this workshop doesn't support
+  Windows (see the note at the top).
+- Download the installer from kiro.dev and run it.
+- Use the current **1.x** release. Kiro updates itself in the background. To check manually, open the
+  Kiro menu → **Check for Updates…** (macOS), or run **Kiro: Check for Updates** from the Command
+  Palette (Linux).
+- Behind a proxy: Kiro respects `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY`, and has **Settings > Proxy**.
+  Browser-based sign-in uses your operating system's network stack, not the IDE proxy settings.
+
+Docs: [Installation](https://kiro.dev/docs/getting-started/installation/) ·
+[Setup & First Run](https://kiro.dev/docs/ide/setup/)
+
+### First launch and sign-in
+
+On first launch Kiro walks you through:
+
+1. **Sign in** with Google, GitHub, AWS Builder ID, or your organization's identity provider. If your
+   company provides Kiro seats, use the organization sign-in your admin gave you.
+2. **Import settings** (optional) from VS Code.
+3. **Choose a theme.**
+4. **Shell integration**: allow it. The agent needs it to run commands such as `mvn` for you.
+
+Docs: [Authentication](https://kiro.dev/docs/getting-started/authentication/)
+
+### Plans and credits
+
+Agent work in Kiro is metered in **credits**. Read this before the day so you don't run out at lunch.
+
+| Plan | Price (per user / month) | Credits | Notes |
+|---|---|---|---|
+| Free | $0 | 50 | Open-weight models and Claude Sonnet 4.5, subject to rate limits |
+| Pro | $20 | 1,000 | Premium models; add-on credits at $0.04 each |
+| Pro+ | $40 | 2,000 | As Pro |
+| Pro Max | $100 | 5,000 | As Pro |
+| Power | $200 | 10,000 | As Pro |
+
+Source: [kiro.dev/pricing](https://kiro.dev/pricing/), checked 2026-10-09. Prices change; the pricing page wins.
+
+What this means for a full workshop day:
+
+- Per the pricing page, "simple prompts can consume less than 1 credit. More complex prompts, such as
+  executing a spec task, typically cost more than 1 credit." Prompts, spec refinement, task execution
+  and agent-prompt hooks all use credits. Shell-command hooks (the kind this workshop ships) do not.
+- Kiro does not publish a per-module figure. Your instructor may share the figure from their dry run.
+  Modules 2 to 5 generate and run several specs with many tasks each. **Expect 50 credits to run out
+  well before the end of the day.** Use a paid plan (Pro or higher) or a seat from your organization
+  for the full day.
+- Monthly plan credits reset at the start of each billing month and do not roll over. Add-on credits
+  are available on paid plans only.
+- The model you pick changes the cost. Credit multipliers are relative to **Auto** (1.0x). For example,
+  per the models page, Claude Opus 5.5 is 2.0x and Claude Haiku 4.5 is 0.4x. Multipliers change often;
+  check [the models page](https://kiro.dev/docs/models/) on the day.
+- You can see your plan's monthly limit, credits used and credits remaining in the subscription
+  dashboard inside Kiro. The pricing page says usage updates at least every 5 minutes.
+- The Free tier is not available for Kiro Enterprise (organization sign-in) or AWS GovCloud (US).
+  Those require a paid plan.
+
+Docs: [Pricing](https://kiro.dev/pricing/) · [Models](https://kiro.dev/docs/models/)
+
+### Data handling: which account to use
+
+Per Kiro's data-protection page, content from **Kiro enterprise users is not used for service
+improvement**. Content from **Free Tier users and individual subscribers** (including paid plans with
+GitHub, Google or Builder ID sign-in) may be used, for example for model training, unless you opt out.
+
+The sample app contains no proprietary code, so a personal account is fine for the workshop. Do
+**not** paste your company's code into a personal account. See the page below for how to opt out.
+
+Docs: [Data protection](https://kiro.dev/docs/privacy-and-security/data-protection/)
+
+---
+
+## 4. Java extensions from Open VSX
+
+Kiro is built on a VS Code foundation and uses the Open VSX extension registry by default. Kiro's Java
+guide recommends these extensions:
+
+1. Open the **Extensions** view.
+2. Search for and install **Extension Pack for Java**.
+3. Search for and install **Spring Boot Extension Pack**.
+
+These give you Java language support, Maven integration and Spring Boot tooling in the editor. They are
+optional for the agent, which works through files and Maven, but they make reviewing its changes easier.
+
+The terminal build (`mvn -B clean verify`) is the source of truth in this workshop. If the editor shows
+red squiggles while Maven reports `BUILD SUCCESS`, trust Maven.
+
+Docs: [Extension registry](https://kiro.dev/docs/ide/editor/extension-registry/) ·
+[Java guide](https://kiro.dev/docs/guides/languages-and-frameworks/java-guide/)
+
+---
+
+## 5. Clone the repository and open `sample-app/` as the workspace
+
+### Clone and open
+
+In a terminal where **JDK 8** is active (section 1):
+
+```bash
+git clone <repository-url>
+cd <repository>/sample-app
+kiro .
+```
+
+Use the URL your instructor sent. Don't change anything in `sample-app/`: every outdated pattern in it
+is an exercise.
+
+### Open `sample-app/`, not the repository root
+
+`kiro .` from inside `sample-app/` opens the right folder with your terminal's JDK. **File > Open
+Folder** → `sample-app` also opens it, but Kiro then may not use your terminal's JDK (section 1).
+
+Why this folder:
+
+- `sample-app/.kiro/` holds the workshop's steering files, hooks, custom agent and two skills
+  (`jakarta-namespace-migration`, `spring-security-lambda-dsl`). Kiro loads workspace configuration
+  from the `.kiro/` folder of the workspace you open.
+- The reference solutions live in `solutions/` at the repository root, **outside** the workspace, so
+  the agent doesn't read or copy them when it searches your codebase.
+
+### Trust the workspace
+
+Kiro treats every workspace as **untrusted** until you trust it. When Kiro asks whether you trust
+`sample-app`, choose to trust it.
+
+Why it matters. Until a workspace is trusted, Kiro:
+
+- does **not** load the workspace's custom agents, steering files, MCP server configuration or skills
+  (and not its workflow files);
+- asks before **every** shell command, even when a saved rule allows it;
+- asks before writing to `.kiro/steering` or `.kiro/skills`.
+
+This protects you from a cloned repository that tries to change how the agent behaves. Your trust
+decision is stored outside the workspace, so a repository can't trust itself. You trust this one
+because the workshop's `.kiro/` content is what you are here to learn.
+
+> Verify: the exact wording and position of the trust prompt in your Kiro build. The docs describe
+> what trust does, not the button. If you dismissed the prompt, check the
+> [Workspace trust](https://kiro.dev/docs/permissions/) section of the docs.
+
+Docs: [Permissions: workspace trust](https://kiro.dev/docs/permissions/)
+
+### Verify
+
+1. Click the **Kiro ghost icon** in the activity bar to open the Kiro panel. It has sections for Specs,
+   Agent Hooks, Steering and MCP Servers.
+2. Under **Steering** you should see `migration-standards`, `migration-playbook`, `pom-rules` and
+   `test-rules`.
+3. Under **Agent Hooks** you should see `verify-after-spec-task` (enabled) and `jakarta-import-guard`
+   (disabled). Leave both as they are; the modules tell you when to change them.
+4. Open the chat (Cmd+L on macOS, Ctrl+L on Linux) and type `/`. The menu should list
+   `migration-playbook` among the slash commands.
+
+If the steering files are missing, the workspace is not trusted, or you opened the repository root
+instead of `sample-app/`.
+
+---
+
+## 6. Baseline build on JDK 8
+
+Run this in a terminal (Kiro's integrated terminal, opened with ``Ctrl+` ``, or any other) where
+JDK 8 is active, from `sample-app/`:
+
+```bash
+java -version
+mvn -v
+mvn -B clean verify
+```
+
+What to look for:
+
+1. `java -version` and the `Java version:` line of `mvn -v` both show **1.8.0_…**.
+2. Near the end of the `mvn -B clean verify` output, the test summary under `Results:` reads
+   `Tests run: 13, Failures: 0, Errors: 0, Skipped: 0` (9 tests in `UserServiceTest`, 4 in
+   `UserControllerTest`).
+3. The last lines show **`BUILD SUCCESS`**.
+
+**Write down the "Tests run" total you see.** The expected number is 13 at every stage, but you read
+your own number at every check. If yours isn't 13, tell the instructor. From Module 2 on, a migration
+step is done only if the build passes **and** the test count did not go down. Some upgrades make tests
+silently stop running while the build stays green.
+
+To see only the end of the output:
+
+```bash
+mvn -B clean verify | tail -n 30
+```
+
+Optional: start the app and call the API as described in [`sample-app/README.md`](../sample-app/README.md).
+
+---
+
+## 7. Pre-download the dependencies for every stage
+
+Each stage uses a new Spring Boot line. Each one needs a fresh set of dependencies and Maven plugins,
+often hundreds of megabytes. Downloading them during the workshop, on a shared network, is the most
+common reason participants fall behind. Run the commands below once, at home or on the office network.
+They fill your local Maven cache (`~/.m2/repository`) and confirm that your machine can build every
+stage. They don't change your `sample-app/` workspace.
+
+Run them from the repository root, with the JDK shown above each group active in that terminal.
+
+**JDK 21:**
+
+```bash
+mvn -B -f solutions/stage-1-boot27-java21/pom.xml clean verify dependency:tree
+```
+
+```bash
+mvn -B -f solutions/stage-2-boot35-java21/pom.xml clean verify dependency:tree
+```
+
+```bash
+mvn -B dependency:get -Dartifact=org.springframework.boot:spring-boot-properties-migrator:3.5.16
+```
+
+**JDK 25:**
+
+```bash
+mvn -B -f solutions/stage-3-boot41-java25/pom.xml clean verify dependency:tree
+```
+
+No JDK 25? Run the same command in the JDK 21 terminal with `-Djava.version=21` added.
+
+**JDK 8** (the dependency plugin the sample app uses from Module 1 on):
+
+```bash
+mvn -B -f sample-app/pom.xml dependency:tree
+```
+
+Every command should end with `BUILD SUCCESS`. Then check the cache:
+
+```bash
+ls ~/.m2/repository/org/springframework/boot/spring-boot/
+```
+
+Look for `2.2.4.RELEASE`, `2.7.18`, `3.5.16` and `4.1.1` (more versions are fine).
+
+If one fails, tell the instructor before the day and include the last 30 lines of output. It usually
+means a proxy or mirror problem, or the wrong JDK. Occasionally it is a problem in the reference
+solution itself, which the instructor needs to know about.
+
+---
+
+## Pre-workshop checklist
+
+- [ ] You are on macOS or Linux (or a Linux VM / cloud desktop).
+- [ ] `java -version` shows 8, 21 and 25 in turn after switching, and you know how to switch per terminal.
+- [ ] JDK 8 is the default for new terminals, and you started Kiro from a JDK 8 terminal with `kiro .`.
+- [ ] `mvn -v` shows Maven 3.9+ on Java 1.8.
+- [ ] `git --version` shows 2.23 or later; `python3 --version` and `curl --version` work.
+- [ ] Kiro IDE 1.x is installed, you are signed in, and shell integration is enabled.
+- [ ] You know your plan and credit allowance, and have a paid plan or an organization seat for the full day.
+- [ ] Extension Pack for Java and Spring Boot Extension Pack are installed.
+- [ ] `sample-app/` is open as the workspace and trusted; the four steering files and both hooks appear
+  in the Kiro panel.
+- [ ] `mvn -B clean verify` on JDK 8 ends with `BUILD SUCCESS`, and you wrote down the "Tests run" total (expected: 13).
+- [ ] The section 7 commands succeeded, and `~/.m2/repository/org/springframework/boot/spring-boot/`
+  lists 2.2.4.RELEASE, 2.7.18, 3.5.16 and 4.1.1.
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `mvn -v` shows Java 21 or 25 in your "JDK 8" terminal | `JAVA_HOME` points to another JDK (on Linux, `update-alternatives` changes only `java`) | Switch per terminal (section 1). `mvn -v` must show `1.8.0_…`. |
+| The agent's `mvn -v` shows another JDK than your terminal | Kiro was started from the Dock or a launcher, or before you changed the default | Quit Kiro and start it from a terminal with the right JDK: `cd sample-app && kiro .` |
+| `kiro: command not found` | The `kiro` command isn't on your PATH | See the Verify note in section 1, or open `sample-app/` with **File > Open Folder** for now and tell the instructor. |
+| Build fails on a newer JDK with a Lombok error, for example an `IllegalAccessError` mentioning `com.sun.tools.javac` | The baseline pins Lombok 1.18.10, which cannot run on JDK 16+ | Build on JDK 8. Don't upgrade Lombok yourself; that is a Module 2 exercise. |
+| `/usr/libexec/java_home -v 1.8` says it can't find a matching JVM | JDK 8 not installed, or installed by unpacking an archive | Install the Corretto 8 `.pkg`, or use SDKMAN. |
+| `python3` opens an "install command line developer tools" dialog (macOS) | The Xcode Command Line Tools aren't installed | Accept the install before the day; it takes several minutes. |
+| Dependency downloads fail or time out | Proxy or blocked Maven Central | Configure a proxy or your company mirror in `~/.m2/settings.xml`. |
+| macOS says Kiro "is damaged" or can't be opened | Download quarantine flag | Per the Kiro troubleshooting page: `sudo xattr -d com.apple.quarantine /Applications/Kiro.app` |
+| Sign-in page doesn't load behind a proxy | Browser sign-in uses the OS network stack, not Kiro's proxy settings | Fix the OS or browser proxy. The [installation page](https://kiro.dev/docs/getting-started/installation/) links to the full proxy and allowlist reference. |
+| The agent can't run commands, or `#terminal` is empty | Shell integration not active | Command Palette → **Kiro: Enable Shell Integration**. For zsh, add `[[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)"` to `~/.zshrc` (bash: same line with `bash`). Powerlevel10k users also add `typeset -g POWERLEVEL9K_TERM_SHELL_INTEGRATION=true`. |
+| Steering files don't appear in the Kiro panel | Workspace not trusted, or the repository root is open | Open `sample-app/` and trust it. |
+| Editor shows Java errors but `mvn -B clean verify` succeeds | The editor's Java tooling uses its own JDK and project import | Trust Maven. > Verify: the Java extension's README for how to point its language server at a JDK (it may need a newer JDK than the project's JDK 8). |
+| You run out of credits during the day | Free plan (50 credits) | Use a paid plan or an organization seat. Check usage in Kiro's subscription dashboard. On the day, pair with a neighbour until it's sorted. |
+| `docker compose up` fails | Docker not installed or `POSTGRES_PASSWORD` not set | Docker is optional. If you use it, export `POSTGRES_PASSWORD` first (see `sample-app/README.md`). |
+
+More: [Kiro IDE troubleshooting](https://kiro.dev/docs/ide/troubleshooting/)
+
+## Next
+
+Bring your laptop, charger and your "Tests run" number. The day starts with
+[Module 1: Setup and assessment](../modules/01-setup-and-assessment.md).

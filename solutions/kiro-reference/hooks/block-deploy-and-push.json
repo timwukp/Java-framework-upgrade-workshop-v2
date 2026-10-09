@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "block-deploy-and-push",
+      "description": "Humans deploy and push, not the agent. Blocks shell tool calls that run a Maven/Gradle deploy goal or git push.",
+      "trigger": "PreToolUse",
+      "matcher": "shell",
+      "action": {
+        "type": "command",
+        "command": "payload=$(cat); if printf '%s' \"$payload\" | grep -qiE '(mvn|gradlew?)[^\"]*[[:space:]][a-z:-]*deploy([[:space:]\"\\\\]|$)|git[^\"]*[[:space:]]push([[:space:]\"\\\\]|$)'; then echo 'Blocked by workspace policy: deploy and git push are run by humans, not the agent.' 1>&2; exit 2; fi; exit 0"
+      },
+      "timeout": 10
+    }
+  ]
+}
