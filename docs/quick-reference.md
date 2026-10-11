@@ -1,5 +1,7 @@
 # Day sheet (quick reference)
 
+**English** · [中文（台灣）](cheat-sheet.zh-TW.md)
+
 One page for the workshop day. More: [migration cheat sheet](migration-cheat-sheet.md) (what changes
 at each stage) · [troubleshooting](troubleshooting.md) (symptoms and fixes) ·
 [Kiro feature reference](kiro-feature-reference.md) (features, file formats, docs links) ·

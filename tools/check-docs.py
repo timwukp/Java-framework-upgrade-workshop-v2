@@ -10,8 +10,9 @@
    instructor", prompt lines of at most 100 characters.
 3. "Exercise N.M" references resolve to a "### N.M" heading when module N is a runbook.
 4. Every copy of the javax import regex in the docs equals the one in jakarta-import-guard.json.
-5. Translations (files containing "<!-- source: <path> @ <commit> -->") contain every code block of the
-   English source byte for byte; a warning if the source changed after that commit.
+5. Translations (files containing "<!-- source: <path> @ <commit or blob id> -->") contain every code
+   block of the English source byte for byte; a warning if the source changed since that version
+   (record the blob id: git hash-object <path>).
 
 Exit code 0 when there are no errors (warnings don't fail).
 """
@@ -204,7 +205,10 @@ def check_translations(path, text):
         if block not in src_text:
             errors.append(f"{rel(path)}: a code block is not byte-identical to {src_rel}:\n    {block.splitlines()[0] if block else '(empty)'}")
     try:
-        old = subprocess.run(["git", "-C", ROOT, "show", f"{sha}:{src_rel}"], capture_output=True, text=True, check=True).stdout
+        kind = subprocess.run(["git", "-C", ROOT, "cat-file", "-t", sha], capture_output=True, text=True, check=True).stdout.strip()
+        spec = sha if kind == "blob" else f"{sha}:{src_rel}"
+        old = subprocess.run(["git", "-C", ROOT, "cat-file", "-p", spec] if kind == "blob" else ["git", "-C", ROOT, "show", spec],
+                             capture_output=True, text=True, check=True).stdout
         if old != src_text:
             warnings.append(f"{rel(path)}: {src_rel} changed after {sha}; update the translation and its source line")
     except (subprocess.CalledProcessError, FileNotFoundError):
