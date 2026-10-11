@@ -65,7 +65,7 @@ DB_PASSWORD=$POSTGRES_PASSWORD SPRING_PROFILES_ACTIVE=postgres mvn spring-boot:r
 | Area | Legacy pattern in this app | Where it is fixed |
 |---|---|---|
 | Build | `java.version` 1.8, Spring Boot 2.2.4 parent (documented as compatible up to Java 13) | Modules 2-4 |
-| Lombok | Pinned to 1.18.10 (fails on JDK 16+) | Module 2 |
+| Lombok | Pinned to 1.18.10 (fails on JDK 16+; on JDK 21 the build stops with an `IllegalAccessError`) | Module 2 |
 | Java language | `java.util.Date`, field injection, `@RequestMapping(method = ...)` | Module 2 |
 | Bean Validation | Relies on Boot 2.2's `spring-boot-starter-web` bringing Hibernate Validator; Boot 2.3+ does not, so `@Valid` silently stops working | Module 2 |
 | Test engine | JUnit 4 tests run on the Vintage engine bundled with Boot 2.2; Boot 2.4+ no longer bundles it, so the tests silently stop running | Module 2 |
@@ -74,6 +74,7 @@ DB_PASSWORD=$POSTGRES_PASSWORD SPRING_PROFILES_ACTIVE=postgres mvn spring-boot:r
 | Spring MVC | Hand-rolled error map instead of `ProblemDetail` (RFC 9457) | Module 3 |
 | Configuration | `server.max-http-header-size` (renamed in Boot 3), explicit Hibernate dialects | Module 3 |
 | Jackson | `Jackson2ObjectMapperBuilderCustomizer` (Jackson 2); Boot 4 defaults to Jackson 3 | Module 4 |
+| Jackson binding | Lombok `@AllArgsConstructor` on `User`: harmless with Jackson 2, but with Jackson 3 every POST that omits `active` gets 400 (the `validUserIsCreated` test catches it) | Module 4 |
 | Tests | JUnit 4, `MockitoJUnitRunner`, `SpringRunner` (Module 3); `@MockBean`, removed in Boot 4 (Module 4) | Modules 3-4 |
 
 ## Project layout

@@ -25,23 +25,36 @@ were missed.
 
 ## Stage 2: Spring Boot 2.7.18 → 3.5.x (Java 21)
 1. Bump the parent to 3.5.x. Add `spring-boot-properties-migrator` (runtime) temporarily and read its
-   warnings; remove it before finishing the stage.
+   startup report (WARN and ERROR entries); remove it before finishing the stage.
 2. `javax.*` → `jakarta.*` for Jakarta EE packages only (see migration-standards). If explicit `javax.*`
    API dependencies are still in `pom.xml`, remove them.
 3. Spring Security 6: replace `WebSecurityConfigurerAdapter` with a `SecurityFilterChain` bean using the
    lambda DSL; `antMatchers` → `requestMatchers`; `authorizeRequests` → `authorizeHttpRequests`;
    in-memory users via an `InMemoryUserDetailsManager` bean.
 4. Hibernate 6: remove explicit `hibernate.dialect` properties unless needed.
-5. Renamed property: `server.max-http-header-size` → `server.max-http-request-header-size`.
+5. Renamed property: `server.max-http-header-size` → `server.max-http-request-header-size`. Rename it
+   yourself: the migrator reports it as an ERROR ("incompatible target type") and does not map it.
 6. Tests: migrate JUnit 4 → JUnit Jupiter, then remove the Vintage engine and `junit:junit`.
-7. Spring MVC no longer matches trailing slashes by default; check clients that call `/api/users/`.
+7. Spring MVC no longer matches trailing slashes by default: `GET /api/users/` returns 404 from stage 2
+   on (200 before); check clients that call it.
 
 ## Stage 3: Spring Boot 3.5.x → 4.1.x, JDK 21 → 25
 1. Fix every deprecation warning from stage 2 first; Boot 4 removes many of them.
-2. Bump the parent to 4.1.x and set `java.version` to 25.
+2. Bump the parent to 4.1.x on JDK 21 and get to green; then set `java.version` to 25 on JDK 25.
 3. Spring Security 7: only the lambda DSL remains (no `and()`).
 4. Jackson 3 is the default (`tools.jackson.*` packages; annotations stay in
    `com.fasterxml.jackson.annotation`). Replace Jackson 2 customizers.
-5. Tests: `@MockBean` is gone; use `@MockitoBean`. Test slices such as `@WebMvcTest` need the matching
+5. **Jackson 3 binding trap (appears at the parent bump):** with Lombok `@AllArgsConstructor` on `User`
+   and the parent's `-parameters`, Jackson 3 binds request bodies through that constructor and, with
+   `FAIL_ON_NULL_FOR_PRIMITIVES` now on by default, rejects a body that omits the primitive `active`.
+   Symptom: `validUserIsCreated` fails with `Status expected:<201> but was:<400>` and every create
+   returns 400 (the error-case tests stay green). Fix: remove `@AllArgsConstructor` from `User`;
+   nothing calls it, and setters keep the default `active = true`. Not
+   `spring.jackson.deserialization.fail-on-null-for-primitives=false`: constructor binding would then
+   set `active` to `false`. Also expected: JSON properties are written in alphabetical order.
+6. Tests: `@MockBean` is gone; use `@MockitoBean`. Test slices such as `@WebMvcTest` need the matching
    modular test starter and moved packages.
-6. Verify every 4.x detail against the official Spring Boot 4.0 and 4.1 migration guides / release notes.
+7. JDK 23+ runs no annotation processor found only on the class path: declare Lombok in
+   `maven-compiler-plugin` `annotationProcessorPaths` at `${lombok.version}`. Symptom: `cannot find
+   symbol` for `getEmail()` / `getName()`.
+8. Verify every 4.x detail against the official Spring Boot 4.0 and 4.1 migration guides / release notes.

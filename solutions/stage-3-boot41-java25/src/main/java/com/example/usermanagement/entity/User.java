@@ -1,6 +1,5 @@
 package com.example.usermanagement.entity;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -21,7 +20,8 @@ import java.time.Instant;
 @Table(name = "users")
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
+// No @AllArgsConstructor: with -parameters, Jackson 3 binds request bodies through it and then
+// rejects a missing primitive ("active") with 400. Setters keep the default active = true.
 public class User {
 
     @Id

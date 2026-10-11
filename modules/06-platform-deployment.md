@@ -22,7 +22,7 @@ support matrix before you spend time on packaging.
 
 ## Prerequisites
 - Module 4 finished: you are on the `workshop` branch at or after tag `stage-3`, on JDK 25, and
-  `mvn -B clean verify` passes with `Tests run: 13`. If you are behind, reset to stage 3 with the one
+  `mvn -B clean verify` passes with `Tests run: 14`. If you are behind, reset to stage 3 with the one
   reset procedure in [solutions/README.md](../solutions/README.md#reset-your-workspace-to-a-stage-the-one-procedure-all-modules-use).
 - The `sample-app/` workspace is open and trusted in Kiro, and `mvn *` is set to "Always allow" (Module 1).
 - **Hooks at the start of this module:** `verify-after-spec-task` **on**, `jakarta-import-guard` **on**,
@@ -264,7 +264,7 @@ export APP_ADMIN_PASSWORD=change-me-locally
 docker run --rm -p 8080:8080 -e APP_ADMIN_PASSWORD user-management:m6
 ```
 What to look for:
-- `mvn -B clean verify` reports `Tests run: 13`, the same total as at the end of Module 4. Read your own.
+- `mvn -B clean verify` reports `Tests run: 14`, the same total as at the end of Module 4. Read your own.
 - `java -version` reports version 25.
 - The app starts and logs the Spring Boot banner.
 
@@ -273,6 +273,17 @@ In a second terminal:
 curl -si -u admin:$APP_ADMIN_PASSWORD http://localhost:8080/api/users | head -n 20
 ```
 Expect `HTTP/1.1 200` and an `X-Request-Id` response header. Stop the container with Ctrl+C.
+
+<details><summary>Background: what the running stage-3 app answers (dry-run reference)</summary>
+
+Verified in the 2026-10-10 dry run (Corretto 25, the stage-3 reference started with `java -jar`, not
+in a container; the deployments in this module were not run): 401 without credentials, 200 for the
+list, 400 for invalid input, 201 for a valid create (`"active":true`), 404 for an unknown id, an
+`X-Request-Id` header, and ISO-8601 dates. `GET /api/users/` with a trailing slash returns **404** from
+stage 2 on (200 in stages 0–1). Jackson 3 writes the JSON properties in alphabetical order. Use the
+same calls against the container or a server deployment; under a context root, prefix the path.
+
+</details>
 
 <details><summary>Background: health probes if you add Actuator later</summary>
 
@@ -307,7 +318,7 @@ git switch -c m6-war
 3. Run the tasks **one at a time** by clicking each task item in `tasks.md` (or first ask Kiro to make
    `tasks.md` a strict chain, then use **Run all Tasks**).
    - After every task the `verify-after-spec-task` hook runs `mvn -B clean verify` and reports the
-     `Tests run` line to the agent. It passes even if fewer tests run, so check that the count is 13.
+     `Tests run` line to the agent. It passes even if fewer tests run, so check that the count is 14.
    - Don't start your own Maven build while the hook is running.
 
 Docs: <https://kiro.dev/docs/specs/quick-spec/> · <https://kiro.dev/docs/specs/> · <https://kiro.dev/docs/hooks/>
@@ -345,7 +356,7 @@ Requirements:
 4. Keep the existing build plugins unchanged, including the maven-compiler-plugin annotationProcessorPaths
    entry for Lombok (JDK 23+ needs it, or the getters and setters disappear).
 5. RequestIdFilter must still be registered, and the X-Request-Id header must still be present.
-6. The number of tests run must not go down (13 today).
+6. The number of tests run must not go down (14 today).
 Do not change application behaviour or security rules.
 Do not run Maven yourself after a task; the verify hook runs `mvn -B clean verify` and reports the
 Tests run line. Quote that line in your summary.
@@ -417,7 +428,7 @@ grep -c '<annotationProcessorPaths>' pom.xml
 java -jar target/user-management.war
 ```
 What to look for:
-- `Tests run: 13`, unchanged from Module 4.
+- `Tests run: 14`, unchanged from Module 4.
 - `dependency:tree` lists the `tomcat-embed-*` artifacts as `provided`. If one is `compile`, the tree
   shows the path that brings it in; ask Kiro to fix it.
 - **The gate:** the `lib-provided` count is greater than 0, and the second `grep` prints the OK line.
@@ -805,7 +816,7 @@ git commit -m "m6: z/OS launch-script draft and steering"
 - [ ] Container image built on Java 25. `java -version` inside the image reports 25. `/api/users` returns
       200 with `X-Request-Id`.
 - [ ] WAR branch: `SpringBootServletInitializer` in place; Tomcat only in `WEB-INF/lib-provided`
-      (`jar tf`); Lombok still in `annotationProcessorPaths`; `java -jar` works; `Tests run: 13`.
+      (`jar tf`); Lombok still in `annotationProcessorPaths`; `java -jar` works; `Tests run: 14`.
 - [ ] `migration-reviewer` verdict recorded for the WAR change, and `git status` unchanged by the review.
 - [ ] Optional WildFly 40+ / Open Liberty deployment answered 200 (authenticated) and 401
       (unauthenticated).
@@ -829,6 +840,7 @@ git commit -m "m6: z/OS launch-script draft and steering"
 | `java -jar target/user-management.war` fails with no web server | Container dependency removed instead of set to `provided` | Restore it with `provided` scope; Boot then packages it in `lib-provided` |
 | `NoSuchMethodError` / `ClassNotFoundException` in `jakarta.servlet` during deployment | Server implements Servlet 6.0 (EE 10), for example JBoss EAP 8.x or WildFly EE 10 | Use an EE 11 server (WildFly 40+, Open Liberty `servlet-6.1`) or the executable jar/container |
 | 404 on `/api/users` after deployment | App runs under a context root (the WAR name by default on many servers) | Call `/user-management/api/users` or set the context root (> Verify for your server) |
+| 404 on `/api/users/` (trailing slash), 200 without it | Since Spring Framework 6 (stage 2), a trailing slash no longer matches; verified in the 2026-10-10 dry run | Expected: call the path without the trailing slash |
 | Liberty refuses to start the feature set (feature conflict in the log) | EE 10 and EE 11 feature versions mixed in `server.xml` | Use only EE 11 features; start with `servlet-6.1` (> Verify the exact message in the Liberty log docs) |
 | Agent command stopped with "Blocked by workspace policy" | The Module 5 `block-deploy-and-push` hook matched a Maven/Gradle deploy goal or `git push` | Working as intended: run that command yourself |
 | Garbled characters in logs or config on z/OS | Encoding mismatch between EBCDIC files and UTF-8 resources | Agree the encoding and file-tagging approach with the platform team (> Verify in Semeru for z/OS docs) |
