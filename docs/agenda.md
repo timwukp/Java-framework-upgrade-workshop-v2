@@ -45,7 +45,7 @@ Instructor demos are **inside** these time boxes and take at most 5 minutes each
 |---|---|---|
 | 60 min | [Module 6 — Platform deployment](../modules/06-platform-deployment.md) | Containers, WAR deployment to JBoss EAP / WildFly and WebSphere / Open Liberty, z/OS considerations |
 | 60 min | [Module 7 — Scale out: Powers, CLI and Kiro Web](../modules/07-scale-out-cli-web.md) | Sharing a Power, headless `kiro-cli` in CI, Kiro Web pull requests, Workflows |
-| Self-paced | [Module 4 appendix](../modules/04-spring-boot-4-java25.md#appendix-optional-outside-the-80-minutes-accelerators) | AWS Transform power and OpenRewrite; needs its own prerequisites (listed there) |
+| Self-paced | [Module 4 appendix](../modules/04-appendix-accelerators.md) | AWS Transform power and OpenRewrite; needs its own prerequisites (listed there) |
 
 ## Reset points
 
@@ -64,10 +64,10 @@ Each module's own "If you run late" note wins; in short:
 - **Module 2:** skip Extra 2.A and the optional smoke test in Exercise 2.13. More than 15 minutes
   behind at the start of Exercise 2.10: reset to stage 1 (row "Module 3"), then do only step 2 of
   Finish.
-- **Module 3:** skip the optional Exercises 2.4 and 3.1. In Part 5, copy the reference skill instead of
-  writing it (the Exercise 5.1 fallback) and write your own after the workshop. In Part 6, skip the
-  reference diff.
-- **Module 4:** the instructor demos the power import (Exercise 1.2, at most 5 minutes). Skip the app
-  start in Exercise 4.3 but keep its class-file and dependency checks. Never skip the test-count checks
-  or the `stage-3` tag.
+- **Module 3:** skip the Extras. In Exercise 3.14, copy the reference skill (the fast path) and write
+  your own after the workshop. In Finish, skip the optional reference diff.
+- **Module 4:** skip Exercise 4.1 but still import the power yourself (Exercise 4.2: powers are
+  installed per user, and the spec uses it); the instructor demos the Plan session (Exercise 4.3, at
+  most 5 minutes). In Exercise 4.12, skip the app start but keep step 1. Never skip the test-count
+  checks or the `stage-3` tag.
 - **Module 5:** Part 1 and Part 4 only. Do Part 2 and the optional Bugfix lab afterwards.
