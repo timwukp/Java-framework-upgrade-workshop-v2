@@ -204,6 +204,8 @@ stage"), run from `sample-app/`. It commits the participant's work, copies the r
 
 ## 7. Troubleshooting
 
+The complete list, by symptom, is [troubleshooting.md](troubleshooting.md). The most common in the room:
+
 | Symptom | Likely cause | Fix |
 |---|---|---|
 | Steering, agents or skills don't appear | Workspace not trusted, or the repository root was opened instead of `sample-app/` | Open `sample-app/` and trust it |

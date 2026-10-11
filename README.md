@@ -70,8 +70,10 @@ docs/
   agenda.md                  Timetable, what to skip if running late
   participant-setup.md       Install JDK 8/21/25, Maven, Kiro; baseline build
   instructor-guide.md        Dry run, run of show, room control, troubleshooting
-  quick-reference.md         Kiro and migration cheat sheet
-  kiro-feature-reference.md  Every Kiro feature used, with its docs link
+  quick-reference.md         Day sheet: stages, JDKs, hooks, scripts, expected results
+  troubleshooting.md         Every known symptom, its cause and fix, with stable IDs
+  migration-cheat-sheet.md   What changes at each stage, and why
+  kiro-feature-reference.md  Every Kiro feature used, its file format and docs link
   verification-log.md        What the dry runs verified, and what is still unverified
 modules/
   01-setup-and-assessment.md
@@ -89,6 +91,9 @@ sample-app/                  Open this folder in Kiro. The legacy starting point
 powers/java-modernization/   A Kiro power (Agent Plugins format) imported in Module 4
 solutions/                   Reference state after stages 1, 2 and 3, and the one reset procedure
                              (outside the workspace on purpose)
+scripts/                     Helpers you run from sample-app/: check-env, verify-stage,
+                             compare-stage, reset-to-stage, smoke (see scripts/README.md)
+tools/                       Maintainer checks for the docs and the scripts
 ```
 
 ## Prerequisites

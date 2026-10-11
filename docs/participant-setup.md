@@ -473,7 +473,7 @@ solution itself, which the instructor needs to know about.
 | You run out of credits during the day | Free plan (50 credits) | Use a paid plan or an organization seat. Check usage in Kiro's subscription dashboard. On the day, pair with a neighbour until it's sorted. |
 | `docker compose up` fails | Docker not installed or `POSTGRES_PASSWORD` not set | Docker is optional. If you use it, export `POSTGRES_PASSWORD` first (see `sample-app/README.md`). |
 
-More: [Kiro IDE troubleshooting](https://kiro.dev/docs/ide/troubleshooting/)
+More: [all workshop symptoms and fixes](troubleshooting.md) · [Kiro IDE troubleshooting](https://kiro.dev/docs/ide/troubleshooting/)
 
 ## Next
 

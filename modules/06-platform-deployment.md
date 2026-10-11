@@ -260,7 +260,7 @@ ENTRYPOINT ["java", "-jar", "application.jar"]
 mvn -B clean verify
 docker build -t user-management:m6 .
 docker run --rm --entrypoint java user-management:m6 -version
-export APP_ADMIN_PASSWORD=change-me-locally
+printf 'Local admin password: '; read -rs APP_ADMIN_PASSWORD; echo; export APP_ADMIN_PASSWORD
 docker run --rm -p 8080:8080 -e APP_ADMIN_PASSWORD user-management:m6
 ```
 What to look for:
@@ -268,11 +268,12 @@ What to look for:
 - `java -version` reports version 25.
 - The app starts and logs the Spring Boot banner.
 
-In a second terminal:
+In a second terminal, set the same password with the `printf … read` line above, then:
 ```bash
-curl -si -u admin:$APP_ADMIN_PASSWORD http://localhost:8080/api/users | head -n 20
+curl -si -u "admin:$APP_ADMIN_PASSWORD" http://localhost:8080/api/users | head -n 20
 ```
-Expect `HTTP/1.1 200` and an `X-Request-Id` response header. Stop the container with Ctrl+C.
+Expect `HTTP/1.1 200` and an `X-Request-Id` response header. `../scripts/smoke.sh` runs all the
+running-app checks against the container. Stop the container with Ctrl+C.
 
 <details><summary>Background: what the running stage-3 app answers (dry-run reference)</summary>
 
@@ -560,7 +561,7 @@ Otherwise go straight to the checkpoint.
    > Verify: the context-root default in the WildFly docs.
 
 ```bash
-curl -si -u admin:$APP_ADMIN_PASSWORD http://localhost:8080/user-management/api/users | head -n 20
+curl -si -u "admin:$APP_ADMIN_PASSWORD" http://localhost:8080/user-management/api/users | head -n 20
 ```
 
 **Ask Kiro** (only if the deployment fails)
@@ -589,7 +590,7 @@ If the log isn't in the IDE terminal, paste it into the chat instead.
 
 **Verify**
 ```bash
-curl -si -u admin:$APP_ADMIN_PASSWORD http://localhost:8080/user-management/api/users | grep -iE '^HTTP|x-request-id'
+curl -si -u "admin:$APP_ADMIN_PASSWORD" http://localhost:8080/user-management/api/users | grep -iE '^HTTP|x-request-id'
 curl -si http://localhost:8080/user-management/api/users | head -n 1
 ```
 - The first command should show HTTP 200 and an `X-Request-Id` header. The filter is registered from the
@@ -709,7 +710,7 @@ If you have Open Liberty on Java 25, either:
 
 Then call the API:
 ```bash
-curl -si -u admin:$APP_ADMIN_PASSWORD http://localhost:9080/user-management/api/users | grep -iE '^HTTP|x-request-id'
+curl -si -u "admin:$APP_ADMIN_PASSWORD" http://localhost:9080/user-management/api/users | grep -iE '^HTTP|x-request-id'
 ```
 Expect HTTP 200 and an `X-Request-Id` header.
 
