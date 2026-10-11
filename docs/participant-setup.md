@@ -364,12 +364,12 @@ What to look for:
 
 1. `java -version` and the `Java version:` line of `mvn -v` both show **1.8.0_…**.
 2. Near the end of the `mvn -B clean verify` output, the test summary under `Results:` reads
-   `Tests run: 13, Failures: 0, Errors: 0, Skipped: 0` (9 tests in `UserServiceTest`, 4 in
+   `Tests run: 14, Failures: 0, Errors: 0, Skipped: 0` (9 tests in `UserServiceTest`, 5 in
    `UserControllerTest`).
 3. The last lines show **`BUILD SUCCESS`**.
 
-**Write down the "Tests run" total you see.** The expected number is 13 at every stage, but you read
-your own number at every check. If yours isn't 13, tell the instructor. From Module 2 on, a migration
+**Write down the "Tests run" total you see.** The expected number is 14 at every stage, but you read
+your own number at every check. If yours isn't 14, tell the instructor. From Module 2 on, a migration
 step is done only if the build passes **and** the test count did not go down. Some upgrades make tests
 silently stop running while the build stays green.
 
@@ -413,7 +413,8 @@ mvn -B dependency:get -Dartifact=org.springframework.boot:spring-boot-properties
 mvn -B -f solutions/stage-3-boot41-java25/pom.xml clean verify dependency:tree
 ```
 
-No JDK 25? Run the same command in the JDK 21 terminal with `-Djava.version=21` added.
+No JDK 25? Run the same command in the JDK 21 terminal with `-Djava.version=21` added. Verified in
+the 2026-10-10 dry run (Corretto 21): this passes, and so does `java.version` 21 set in that `pom.xml`.
 
 **JDK 8** (the dependency plugin the sample app uses from Module 1 on):
 
@@ -427,7 +428,9 @@ Every command should end with `BUILD SUCCESS`. Then check the cache:
 ls ~/.m2/repository/org/springframework/boot/spring-boot/
 ```
 
-Look for `2.2.4.RELEASE`, `2.7.18`, `3.5.16` and `4.1.1` (more versions are fine).
+Look for `2.2.4.RELEASE`, `2.7.18`, `3.5.16` and `4.1.1` (more versions are fine). Verified in the
+2026-10-10 dry run (Linux, Corretto, Maven 3.9.11): the `dependency:tree` and `dependency:get` commands
+succeed and the cache then lists these four versions.
 
 If one fails, tell the instructor before the day and include the last 30 lines of output. It usually
 means a proxy or mirror problem, or the wrong JDK. Occasionally it is a problem in the reference
@@ -447,7 +450,7 @@ solution itself, which the instructor needs to know about.
 - [ ] Extension Pack for Java and Spring Boot Extension Pack are installed.
 - [ ] `sample-app/` is open as the workspace and trusted; the four steering files and both hooks appear
   in the Kiro panel.
-- [ ] `mvn -B clean verify` on JDK 8 ends with `BUILD SUCCESS`, and you wrote down the "Tests run" total (expected: 13).
+- [ ] `mvn -B clean verify` on JDK 8 ends with `BUILD SUCCESS`, and you wrote down the "Tests run" total (expected: 14).
 - [ ] The section 7 commands succeeded, and `~/.m2/repository/org/springframework/boot/spring-boot/`
   lists 2.2.4.RELEASE, 2.7.18, 3.5.16 and 4.1.1.
 

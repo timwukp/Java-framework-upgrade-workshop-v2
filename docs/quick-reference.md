@@ -93,7 +93,7 @@ resources:
 | Add `junit-vintage-engine` (test) | Since Boot 2.4 it isn't in starter-test; JUnit 4 tests silently stop running |
 | Remove the Lombok pin | 1.18.10 can't run on JDK 16+; Boot 2.7.18 manages 1.18.30 (first with JDK 21 support) |
 | `java.version` 21 | — |
-| `byte-buddy.version` 1.17.8 override | Boot 2.7.18 manages Byte Buddy 1.12.23, older than Java 21 (the reference keeps the override) |
+| No `byte-buddy.version` override | Not needed: stage 1 passes on Corretto 21 with Boot's Byte Buddy 1.12.23 (verified in the 2026-10-10 dry run). Troubleshooting only: if Mockito/Hibernate fails naming Byte Buddy and Java 21, override `byte-buddy.version` |
 
 ### Stage 2: Spring Boot 2.7.18 → 3.5.x (Java 21)
 | Before | After |
@@ -119,9 +119,10 @@ resources:
 | `.and()` / non-lambda security DSL | Lambda DSL only (Spring Security 7) |
 | `java.version` 21 | 25 (Lombok ≥ 1.18.40) |
 | Lombok only as a `provided` dependency | Also in `maven-compiler-plugin` `annotationProcessorPaths` (`${lombok.version}`): since JDK 23, javac no longer runs annotation processors it finds only on the class path |
+| Lombok `@AllArgsConstructor` on `User` | Remove it: with Jackson 3 it makes every POST return 400 (`active` missing from the JSON); `validUserIsCreated` catches it |
 
 ## Commands
-Expected test count at every stage: `Tests run: 13` (9 service + 4 web). Read your own number anyway.
+Expected test count at every stage: `Tests run: 14` (9 service + 5 web). Read your own number anyway.
 
 ```bash
 mvn -B clean verify
@@ -140,7 +141,7 @@ Annotated stage tags carry the test count (`stage-0`, `stage-1`, `stage-2`, `sta
 `stage-3-final` in Module 5):
 
 ```bash
-git tag -a stage-1 -m "Stage 1: Java 21, Spring Boot 2.7.18, Tests run: 13" && git tag -n1 -l "stage-*"
+git tag -a stage-1 -m "Stage 1: Java 21, Spring Boot 2.7.18, Tests run: 14" && git tag -n1 -l "stage-*"
 ```
 
 Behind? Use the one reset procedure in [solutions/README.md](../solutions/README.md), run from

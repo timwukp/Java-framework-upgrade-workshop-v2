@@ -20,6 +20,7 @@ spring-boot GitHub wiki. When something here disagrees with them, they win.
 ## 1. Build file
 1. Change one variable at a time. First set the `spring-boot-starter-parent` version to 4.1.x and stay
    on the current JDK (Boot 4 runs on Java 17+). Get to green, then switch the JDK and `java.version` to 25.
+   The parent bump is where the Jackson 3 binding trap (section 3) shows up, not the JDK switch.
 2. Rename starters to the modular ones. Example: `spring-boot-starter-web` → `spring-boot-starter-webmvc`.
    The old names still resolve but are deprecated.
 3. Use per-technology test starters instead of only `spring-boot-starter-test`, for example
@@ -49,6 +50,23 @@ spring-boot GitHub wiki. When something here disagrees with them, they win.
   `spring.jackson.time-zone` work on both 3.5 and 4.x.
 - Short-term fallbacks: `spring.jackson.use-jackson2-defaults=true`, or the deprecated
   `spring-boot-jackson2` module.
+- **Trap: stricter defaults break request binding at runtime, not at compile time.** Jackson 3 turns
+  `DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES` on by default. The Spring Boot parent compiles
+  with `-parameters`, so Jackson 3 can bind a request body through an all-args constructor (for
+  example Lombok `@AllArgsConstructor` on an entity or DTO) where Jackson 2 used the no-args
+  constructor and setters. A body that omits a primitive field then fails with
+  `HttpMessageNotReadableException` (`` JSON parse error: Cannot map `null` into type `boolean` ``),
+  and every such POST returns 400. Tests that only check error cases stay green: a 400 test can pass for
+  the wrong reason. Seen in the workshop's 2026-10-10 dry run (Spring Boot 4.1.1, `boolean active`
+  missing from the JSON).
+  - Fix: remove the all-args constructor if nothing calls it (`grep -rn "new <Type>(" src`). Jackson
+    then uses the no-args constructor and setters, and field defaults (`active = true`) stay.
+  - Don't fix it with `spring.jackson.deserialization.fail-on-null-for-primitives=false`: binding
+    still goes through the constructor, which then gets `false`/`0` instead of the field default, a
+    silent behaviour change for every request body.
+- **Property order:** Jackson 3 writes JSON properties in alphabetical order (Jackson 2 used field
+  order), seen in the same dry run. Clients or tests that compare JSON as text notice;
+  `@JsonPropertyOrder` pins an order where it matters.
 
 ## 4. Spring Security 7
 - Only the lambda DSL is valid, and `.and()` is gone. If stage 2 already uses a `SecurityFilterChain`
@@ -64,9 +82,13 @@ spring-boot GitHub wiki. When something here disagrees with them, they win.
 - Liveness and readiness probes are enabled by default.
 
 ## 6. Verify
-1. `mvn -B clean verify` on JDK 25. The "Tests run" total must equal stage 2's. On JDK 23+, Lombok must be
-   declared in `annotationProcessorPaths` (see the java-25-adoption skill).
-2. Start the app and call one endpoint with credentials. Check the JSON shape (null fields omitted,
-   ISO-8601 dates).
-3. Search for leftovers: `import org.springframework.boot.test.mock.mockito`, `com.fasterxml.jackson.databind`,
+1. `mvn -B clean verify` after the parent bump (still on the old JDK), then again on JDK 25. The "Tests
+   run" total must equal stage 2's. On JDK 23+, Lombok must be declared in `annotationProcessorPaths`
+   (see the java-25-adoption skill).
+2. **Test a create request whose body omits optional and primitive fields** (for example a POST without
+   `active`) and expect 201 with the field defaults. If the web tests only cover error cases, add one
+   such success test before the parent bump: error-case tests don't catch the Jackson 3 trap above.
+3. Start the app and call one endpoint with credentials. Check the JSON shape (null fields omitted,
+   ISO-8601 dates, properties now in alphabetical order).
+4. Search for leftovers: `import org.springframework.boot.test.mock.mockito`, `com.fasterxml.jackson.databind`,
    `spring-boot-starter-web</artifactId>`.

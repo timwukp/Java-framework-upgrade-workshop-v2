@@ -8,15 +8,15 @@ outside the 80 minutes, covers the AWS Transform power and OpenRewrite.
 
 - Import the `java-modernization` power and use it in a **Plan** session.
 - Replace `@MockBean` with `@MockitoBean` while still on 3.5.16.
-- Run a Quick Spec: Jackson properties, Spring Boot 4.1.1 with modular starters, then Java 25 with
-  Lombok declared as an annotation processor.
+- Run a Quick Spec: Jackson properties, Spring Boot 4.1.1 with modular starters (and the Jackson 3
+  trap it exposes), then Java 25 with Lombok declared as an annotation processor.
 - Check the test count, the class file version and the running app; tag `stage-3`.
 
 ## Prerequisites
 
 - Module 3 is complete: tag `stage-2`, Spring Boot 3.5.16, `java.version` 21, and
-  `mvn -B clean verify` passes on JDK 21 with **Tests run: 13** (9 service + 4 web tests). Read your
-  own number; if it isn't 13, fix that first.
+  `mvn -B clean verify` passes on JDK 21 with **Tests run: 14** (9 service + 5 web tests). Read your
+  own number; if it isn't 14, fix that first.
 - `MIGRATION-NOTES.md` has the section `Stage 2 → 3: deprecations to fix first` (Module 3, Ex 6.2).
 - Behind? Use the [reset procedure](../solutions/README.md#reset-your-workspace-to-a-stage-the-one-procedure-all-modules-use),
   row "Module 4".
@@ -47,12 +47,15 @@ Jackson 3 (`tools.jackson`) replaces Jackson 2; `@MockBean` is gone; 3.x depreca
 | Spring Security 7 needs the lambda DSL | "the prior configuration style will not be valid in Spring Security 7 where the usage of the Lambda DSL will be required." ([Spring Security 6.5: Preparing for 7.0](https://docs.spring.io/spring-security/reference/6.5/migration-7/configuration.html)) |
 | 4.1 removes 4.0's deprecations | "Classes, methods and properties that were deprecated in Spring Boot 4.0 have been removed in this release." ([Spring Boot 4.1 Release Notes](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.1-Release-Notes)) |
 
-Two exceptions to keep in mind:
+Three things to keep in mind:
 
 - **Jackson annotations keep their old package.** "An exception to this is the jackson-annotations
   module which continues to use the com.fasterxml.jackson.core group ID and
   com.fasterxml.jackson.annotation package."
 - **Hibernate is 7.x.** The 4.0 release notes list "Hibernate 7.2", and the 4.1.1 parent manages 7.4.5.
+- **Jackson 3 has stricter defaults.** Two show up in this module (verified in the 2026-10-10 dry
+  run): a JSON body that omits a primitive can fail with 400 (`FAIL_ON_NULL_FOR_PRIMITIVES`,
+  Exercise 3.4), and JSON properties are written in alphabetical order (Exercise 4.3).
 
 What the 4.1.1 parent manages, from the Spring Boot BOM at tag `v4.1.1`
 ([`platform/spring-boot-dependencies/build.gradle`](https://github.com/spring-projects/spring-boot/blob/v4.1.1/platform/spring-boot-dependencies/build.gradle)
@@ -90,16 +93,19 @@ release, and open-source support for 4.1 runs until 2027-07-31. Java 25 is an LT
 app start in Exercise 4.3 but keep its class-file check. Never skip the test-count checks or the
 `stage-3` tag.
 
-### The build stays green this time
+### The build stays green, with one planned exception
 
-Unlike Module 3, every step keeps the build passing. **A red build means a change is incomplete.**
+Unlike Module 3, every step keeps the build passing, except one: the 4.1.1 parent exposes a Jackson 3
+trap that only `validUserIsCreated` catches (Exercise 3.4). **Any other red build means a change is
+incomplete.**
 
 | After | Spring Boot | `java.version` | JDK | `mvn -B clean verify` | Tests run |
 |---|---|---|---|---|---|
-| Part 2 | 3.5.16 | 21 | 21 | passes | 13 |
-| Task 1 (Jackson properties) | 3.5.16 | 21 | 21 | passes | 13 |
-| Task 2 (Spring Boot 4.1.1) | 4.1.1 | 21 | 21 | passes | 13 |
-| Task 3 (Java 25, Lombok processor) | 4.1.1 | 25 | 25 | passes | 13 |
+| Part 2 | 3.5.16 | 21 | 21 | passes | 14 |
+| Task 1 (Jackson properties) | 3.5.16 | 21 | 21 | passes | 14 |
+| Task 2 (Spring Boot 4.1.1) | 4.1.1 | 21 | 21 | **fails**: `validUserIsCreated` | 14, Failures: 1 |
+| Task 2 fix (no `@AllArgsConstructor` on `User`) | 4.1.1 | 21 | 21 | passes | 14 |
+| Task 3 (Java 25, Lombok processor) | 4.1.1 | 25 | 25 | passes | 14 |
 
 The framework moves first, then the JDK (Boot 4 runs on Java 17+): one variable at a time.
 
@@ -244,7 +250,7 @@ Used: power java-modernization (spring-boot-4-upgrade, java-25-adoption), steeri
 ```
 
 A plan may miss that Lombok must be declared as an annotation processor on JDK 23 and later. You add
-that in task 3.
+that in task 3. It may also miss the Jackson 3 trap that task 2 exposes (Exercise 3.4).
 
 To see which knowledge was used, ask:
 
@@ -315,12 +321,13 @@ mvn -B clean test-compile -Dmaven.compiler.showDeprecation=true -Dmaven.compiler
 
 </details>
 
-**Verify:** a clean tree; tags `stage-0` to `stage-2`; Java 21; parent `3.5.16`; `Tests run: 13,
+**Verify:** a clean tree; tags `stage-0` to `stage-2`; Java 21; parent `3.5.16`; `Tests run: 14,
 Failures: 0, Errors: 0, Skipped: 0`; at least the `MockBean` deprecation. Note other warnings in
 `MIGRATION-NOTES.md`; fix on 3.5 only those with a replacement there.
 
-> **Expected noise:** warnings that a Java agent was loaded dynamically or that Mockito is
-> self-attaching come from Mockito 5 on JDK 21+, not from the migration.
+> **Expected noise:** warnings that a Java agent was loaded dynamically or "Mockito is currently
+> self-attaching to enable the inline-mock-maker" come from Mockito 5 on JDK 21+, not from the
+> migration (seen in stages 2 and 3 in the 2026-10-10 dry run).
 
 **Checkpoint:** if you added notes, commit them (`git add MIGRATION-NOTES.md && git commit -m "Notes:
 stage 2 deprecation listing"`).
@@ -366,7 +373,7 @@ mvn -B clean test-compile -Dmaven.compiler.showDeprecation=true -Dmaven.compiler
 ```
 
 Look for: only `UserControllerTest.java` changed; two `MockitoBean` lines (import and annotation); no
-`MockBean` warning; the agent reported `Tests run: 13` with no failures.
+`MockBean` warning; the agent reported `Tests run: 14` with no failures.
 
 **Checkpoint**
 
@@ -404,7 +411,7 @@ Docs: [Quick Spec](https://kiro.dev/docs/specs/quick-spec/) · [Feature specs](h
 
 1. Check that the tree is clean (`git status`).
 2. New session (**+**), choose **Quick Spec** (on **Let's build**, or in the agent selector).
-3. Send the prompt below. If your stage-2 count isn't 13, use your number. Answer clarifying questions
+3. Send the prompt below. If your stage-2 count isn't 14, use your number. Answer clarifying questions
    in one line.
 
 **Ask Kiro**
@@ -414,13 +421,13 @@ Create a spec named stage-3-boot4 for stage 3 in migration-standards: upgrade th
 
 Constraints:
 - Two phases. Phase A runs on JDK 21 and keeps java.version 21. Phase B moves the build to Java 25; I switch the JDK myself before phase B.
-- Baseline: the stage-2 tag records Tests run: 13. Do not run Maven yourself after a task; the verify hook runs `mvn -B clean verify` and reports the Tests run line. Quote that line in your summary. A task is done only if the build passes AND Tests run is at least 13.
+- Baseline: the stage-2 tag records Tests run: 14. Do not run Maven yourself after a task; the verify hook runs `mvn -B clean verify` and reports the Tests run line. Quote that line in your summary. A task is done only if the build passes AND Tests run is at least 14.
 - Create exactly three tasks, in this order:
   1. (Phase A, still Spring Boot 3.5.16) Delete config/JacksonConfig.java and configure the same behaviour in application.properties with spring.jackson.default-property-inclusion=non_null and spring.jackson.time-zone=UTC. Do not add a JsonMapperBuilderCustomizer, spring-boot-jackson2 or spring.jackson.use-jackson2-defaults. Drop comments in application.properties that only explain stage-2 changes.
-  2. (Phase A) In one task: set the spring-boot-starter-parent version to 4.1.1 and remove the stage-2 comment above it; replace spring-boot-starter-web with spring-boot-starter-webmvc; replace spring-boot-starter-test with spring-boot-starter-webmvc-test (test scope); replace org.springframework.security:spring-security-test with org.springframework.boot:spring-boot-starter-security-test (test scope); change the @WebMvcTest import in UserControllerTest to org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest. If UserControllerTest still uses @MockBean, replace it with @MockitoBean. No classic starters, no other new dependencies, no version pins.
+  2. (Phase A) In one task: set the spring-boot-starter-parent version to 4.1.1 and remove the stage-2 comment above it; replace spring-boot-starter-web with spring-boot-starter-webmvc; replace spring-boot-starter-test with spring-boot-starter-webmvc-test (test scope); replace org.springframework.security:spring-security-test with org.springframework.boot:spring-boot-starter-security-test (test scope); change the @WebMvcTest import in UserControllerTest to org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest. If UserControllerTest still uses @MockBean, replace it with @MockitoBean. No classic starters, no other new dependencies, no version pins. Change only pom.xml and UserControllerTest in this task. If the verify hook then reports a failing test, do not fix it: change no test, add no property, quote the failing test and its assertion message, and stop. I diagnose it and tell you the fix.
   3. (Phase B) First run `mvn -v` and stop unless it reports Java 25. Then set java.version to 25 and change the pom description to "Stage 3: Spring Boot 4.1 on Java 25 (Jakarta EE 11)". Declare Lombok as an annotation processor, because JDK 23+ no longer runs processors found only on the class path: add org.apache.maven.plugins:maven-compiler-plugin (no version; the parent manages it) with annotationProcessorPaths containing org.projectlombok:lombok at version ${lombok.version}, and a one-line XML comment saying why. ${lombok.version} is the parent-managed version, not a pin.
 - Do not change SecurityConfig; it already uses a SecurityFilterChain bean with the lambda DSL. Keep @Import(SecurityConfig.class), @MockitoBean and @WithMockUser in UserControllerTest.
-- Behaviour must not change: 401 for unauthenticated requests to /api/users, 400 for an invalid POST /api/users that never reaches UserService, 404 for unknown ids, an X-Request-Id header on every response, null fields left out of JSON, dates in UTC.
+- Behaviour must not change: 401 for unauthenticated requests to /api/users, 201 for a valid POST /api/users, 400 for an invalid POST /api/users that never reaches UserService, 404 for unknown ids, an X-Request-Id header on every response, null fields left out of JSON, dates in UTC.
 - Never delete, disable or weaken a test. Do not start the application or run git commands; I do both.
 - Out of scope: Java language modernization, virtual threads, new features. Do not invent version numbers.
 ```
@@ -439,13 +446,15 @@ it wherever this module says `stage-3-boot4`.
 
 - [ ] **Three tasks, in order** (Jackson, Boot 4.1.1, Java 25), each quoting the hook's `Tests run`
       line instead of running Maven itself.
+- [ ] **Task 2 stops on red:** it changes only `pom.xml` and `UserControllerTest.java`, and quotes a
+      failing test instead of fixing it.
 - [ ] **Phase B gate:** task 3 starts with `mvn -v` and stops unless it reports 25.
 - [ ] **Lombok processor:** task 3 puts Lombok in `maven-compiler-plugin` `annotationProcessorPaths`
       at `${lombok.version}`; no `<version>` on the plugin.
 - [ ] **No bridges** (`-classic` starters, `spring-boot-jackson2`, `use-jackson2-defaults`), no pins,
       no `SecurityConfig.java` edits.
 - [ ] **Requirements** state the test count and behaviours as `WHEN … THE SYSTEM SHALL …`.
-- [ ] **Versions:** only 3.5.16, 4.1.1, 21, 25 and 13. Delete invented ones.
+- [ ] **Versions:** only 3.5.16, 4.1.1, 21, 25 and 14. Delete invented ones.
 
 If something is off, edit `tasks.md` or `requirements.md` and choose **Sync Files**.
 
@@ -483,7 +492,8 @@ port the class. For these two settings, properties are better:
 1. **They survive the upgrade unchanged.** `spring.jackson.default-property-inclusion` and
    `spring.jackson.time-zone` work on both 3.5 and 4.1. Code you don't have needs no migration.
 2. **They split the risk.** You change the JSON setup on 3.5, where it's proven by the tests. The
-   Boot 4 bump in task 2 then doesn't touch it at all.
+   Boot 4 bump in task 2 then doesn't touch it at all. (Jackson 3's own new defaults still change
+   behaviour; Exercise 3.4 shows one.)
 3. **They're configuration, not code.** You can see and change them per profile without a rebuild,
    and Spring Boot maps them to whichever Jackson version it uses.
 
@@ -510,8 +520,8 @@ The old customizer also switched off `WRITE_DATES_AS_TIMESTAMPS`. The stage-3 re
 property for that and relies on Spring Boot's default of writing `java.time` values as ISO-8601
 strings.
 
-> Verify: dates are ISO-8601 strings on 4.1.1. The smoke test in Exercise 4.3 checks `createdDate`.
-> The source is the Jackson section of the Spring Boot reference documentation.
+Verified in the 2026-10-10 dry run (Corretto 25): on 4.1.1 `createdDate` is an ISO-8601 string such
+as `2026-10-10T14:05:52.659057Z`. The smoke test in Exercise 4.3 checks it.
 
 Docs: [Spec tasks](https://kiro.dev/docs/specs/) · [Hooks](https://kiro.dev/docs/hooks/)
 
@@ -535,7 +545,7 @@ grep -n -A2 "<artifactId>spring-boot-starter-parent</artifactId>" pom.xml
 ```
 
 Look for: only `SecurityConfig.java` in `config/`; the two `spring.jackson` lines; no output from the
-third command; the parent still `3.5.16`; the hook reported `Tests run: 13` and `BUILD SUCCESS`.
+third command; the parent still `3.5.16`; the hook reported `Tests run: 14` and `BUILD SUCCESS`.
 
 **Checkpoint**
 
@@ -544,11 +554,11 @@ git add -A
 git commit -m "Stage 3, task 1: Jackson settings as spring.jackson.* properties (Boot 3.5.16)"
 ```
 
-### Exercise 3.4: Task 2, Spring Boot 4.1.1 with modular starters (10 minutes)
+### Exercise 3.4: Task 2, Spring Boot 4.1.1 with modular starters, and the Jackson 3 trap (10 minutes)
 
 **Goal:** the 4.1.1 parent, the Boot 4 starters and the relocated `@WebMvcTest`, on JDK 21, with the
 same test count. `spring-boot-starter-security-test` is what makes `@WithMockUser` work on Boot 4;
-`SecurityConfig` needs no change.
+`SecurityConfig` needs no change. The new parent turns one test red: you read the cause and fix it.
 
 <details><summary>Background: what task 2 changes, and why (verbatim from the 4.0 guide)</summary>
 
@@ -574,8 +584,8 @@ Things you don't need here, and when you would:
 - **`@EntityScan`'s new package.** It moved to
   `org.springframework.boot.persistence.autoconfigure.EntityScan`, but the app doesn't use it.
 
-> Verify: JUnit 6 keeps the `org.junit.jupiter.api` packages, so the test imports don't change. The
-> green build with 13 tests is your evidence.
+Verified in the 2026-10-10 dry run (Corretto 25): JUnit 6 keeps the `org.junit.jupiter.api` packages;
+the stage-3 reference passes all 14 tests with unchanged test imports.
 
 Docs: [Spec tasks](https://kiro.dev/docs/specs/) ·
 [Autopilot vs Supervised](https://kiro.dev/docs/ide/chat/autopilot/) ·
@@ -589,21 +599,80 @@ Docs: [Spec tasks](https://kiro.dev/docs/specs/) ·
 2. In `pom.xml` and `UserControllerTest.java`, **Accept** only: the four dependency changes, the parent
    version and its comment, the `@WebMvcTest` import, and `@MockitoBean` if you skipped Part 2.
    **Reject** changes to `SecurityConfig.java` or to assertions, and any new `<version>` tag.
-3. If the hook reports a failure, let the agent fix it within the task. If it changes things the spec
-   doesn't ask for, stop it and see Troubleshooting.
+3. **Expect one red test.** The hook reports `Tests run: 14, Failures: 1`:
+   `UserControllerTest.validUserIsCreated`, `Status expected:<201> but was:<400>`. The agent quotes it
+   and stops, as the spec asks. Any other failure: see Troubleshooting.
+4. Read the cause, after the hook has finished:
+
+   ```bash
+   mvn -B clean verify | grep -m2 -E "FAIL_ON_NULL_FOR_PRIMITIVES|HttpMessageNotReadableException"
+   grep -n "AllArgsConstructor" src/main/java/com/example/usermanagement/entity/User.java
+   ```
+
+   The first command should print Spring's log line for the 400. If it prints nothing, look at the
+   MockMvc printout for `validUserIsCreated` above the test summary (`Resolved Exception`), or ask Kiro
+   with `#terminal`.
+
+   > Verify: the 2026-10-10 dry run captured this line in the running app's log; in the test output it
+   > is expected but was not captured.
+
+   ```text
+   Resolved [org.springframework.http.converter.HttpMessageNotReadableException: JSON parse error: Cannot map `null` into type `boolean` (set DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES …
+   ```
+
+   So Jackson 3 builds `User` through Lombok's `@AllArgsConstructor` (the parent compiles with
+   `-parameters`) and fails on the missing primitive `active`. Nothing calls that constructor.
+5. **Fix it** with the prompt below, in the same session. **Accept** only `User.java` (annotation and
+   import removed, a one-line comment) and the note in `tasks.md`. **Reject** test changes,
+   `Boolean active` or a `spring.jackson.deserialization.*` property.
+
+**Ask Kiro**
+
+```text
+validUserIsCreated fails with 400 instead of 201: Jackson 3 binds the request body through Lombok's @AllArgsConstructor on User (the parent compiles with -parameters) and rejects the missing primitive "active" (FAIL_ON_NULL_FOR_PRIMITIVES is on by default). Nothing calls that constructor. In src/main/java/com/example/usermanagement/entity/User.java, remove @AllArgsConstructor and its import and add a one-line comment saying why; keep @Data, @NoArgsConstructor and active = true. Under task 2 in .kiro/specs/stage-3-boot4/tasks.md, add a sub-item recording this fix and its cause. Change nothing else (no test, no property) and do not run Maven.
+```
+
+<details><summary>Background: why a valid create fails on Boot 4, and why not the property</summary>
+
+- **What changed.** On stage 2, Jackson 2 created `User` with the no-args constructor and setters. On
+  Boot 4, Jackson 3 uses the Lombok all-args constructor instead; the Spring Boot parent compiles with
+  `-parameters`, so the constructor's parameter names are in the class file. A missing `active`
+  becomes `null` for a `boolean` parameter, and Jackson 3 switches
+  `DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES` on by default. The result is an
+  `HttpMessageNotReadableException` and a 400 for every POST whose body omits `active`, in the tests
+  and in the running app.
+- **Why only one test caught it.** The other four web tests never send a valid body.
+  `invalidUserIsRejectedByBeanValidation` still gets its 400, but from the JSON parse error, not from
+  Bean Validation: a passing test for the wrong reason. That's why the sample app has a fifth web
+  test, `validUserIsCreated`, from stage 0 on. It creates a user from a body without `active` and
+  expects 201.
+- **Why remove the constructor.** Nothing calls it (`grep -rn "new User(" src` finds only
+  `new User()`). Without it, Jackson uses the no-args constructor and setters, and a missing `active`
+  keeps the field default `true`.
+- **Why not `spring.jackson.deserialization.fail-on-null-for-primitives=false`.** The 400 goes away,
+  but Jackson still binds through the constructor and passes `false` for the missing `active`. Every
+  user created without `active` would be inactive instead of active: a loud failure becomes a silent
+  behaviour change. The property also relaxes the check for every request body in the service.
+- Verified in the 2026-10-10 dry run (Corretto 25): with `@AllArgsConstructor`, `Tests run: 14,
+  Failures: 1` (`validUserIsCreated`, 400 instead of 201), and the running app answered a create with
+  400; without it, all 14 tests pass and the app returns 201 with `"active":true`.
+
+</details>
 
 **Verify**
 
 ```bash
 grep -n -A2 "<artifactId>spring-boot-starter-parent</artifactId>" pom.xml
 grep -nE "<artifactId>spring-boot-starter|spring-security-test" pom.xml
-grep -rn "WebMvcTest;\|MockitoBean;" src/test
+grep -rnE "WebMvcTest;|MockitoBean;|^import lombok.AllArgsConstructor|^@AllArgsConstructor" src
 git diff HEAD --stat
+mvn -B clean verify | grep -E "Tests run:|BUILD" | tail -n 2
 ```
 
 Look for: parent `4.1.1`; starters `webmvc`, `validation`, `data-jpa`, `security`, `webmvc-test` and
-`security-test`, no `spring-security-test`; the new `WebMvcTest` and the `MockitoBean` imports; only
-`pom.xml` and `UserControllerTest.java` changed; the hook reported `Tests run: 13` and `BUILD SUCCESS`.
+`security-test`, no `spring-security-test`; the new `WebMvcTest` and the `MockitoBean` imports, and no
+`AllArgsConstructor` line; only `pom.xml`, `UserControllerTest.java`, `User.java` and `tasks.md`
+changed; `Tests run: 14, Failures: 0, Errors: 0, Skipped: 0` and `BUILD SUCCESS`.
 
 <details><summary>Optional (2 minutes): confirm what Maven resolved instead of trusting the agent</summary>
 
@@ -630,7 +699,7 @@ Look for:
 
 ```bash
 git add -A
-git commit -m "Stage 3, task 2: Spring Boot 4.1.1, modular starters, relocated @WebMvcTest"
+git commit -m "Stage 3, task 2: Spring Boot 4.1.1, modular starters, relocated @WebMvcTest, no @AllArgsConstructor (Jackson 3)"
 ```
 
 ---
@@ -648,6 +717,9 @@ If your company hasn't approved JDK 25 yet, finish stage 3 on JDK 21: Spring Boo
 - Still add the Lombok declaration: it's harmless on JDK 21 and required from JDK 23.
 - In Exercise 4.3, expect major version 65. Write "Java 21" in the `stage-3` tag message.
 - Tell your instructor, and in Module 5 read "25" as "21".
+
+Verified in the 2026-10-10 dry run (Corretto 21): the stage-3 reference passes all 14 tests on JDK 21
+with `java.version` 21, and unedited with `mvn -B clean verify -Djava.version=21`.
 
 </details>
 
@@ -709,9 +781,9 @@ it in `maven-compiler-plugin`'s `annotationProcessorPaths` is the explicit confi
 - **Byte Buddy.** Mockito and Hibernate generate classes with it. Its release notes for 1.17.5
   (30 March 2025) say "Update ASM to version 9.8 to support Java 25 using ASM reader and writer"
   ([Byte Buddy release notes](https://github.com/raphw/byte-buddy/blob/master/release-notes.md)). 4.1.1
-  manages 1.18.11. A `byte-buddy.version` override left over from stage 1 (1.17.8) would pin an older
-  Byte Buddy than the one 4.1.1 manages for Mockito 5.23 and Hibernate 7.4. Remove any such override
-  (`pom-rules`).
+  manages 1.18.11. Stage 1 doesn't need a `byte-buddy.version` override (verified in the 2026-10-10
+  dry run), and the stage-1 reference has none. If you added one anyway, it would pin an older Byte
+  Buddy than the one 4.1.1 manages for Mockito 5.23 and Hibernate 7.4: remove it (`pom-rules`).
 - **What the failure looks like.** If task 3 sets `java.version` 25 without the declaration, the hook
   reports `BUILD FAILURE` with `cannot find symbol` errors in `UserService`, `UserServiceTest` or
   `UserControllerTest`, all pointing at methods Lombok should have generated (`getEmail()`,
@@ -720,8 +792,8 @@ it in `maven-compiler-plugin`'s `annotationProcessorPaths` is the explicit confi
 - **Why stages 0–2 never needed it.** JDK 21 still runs class-path processors. It prints a note about
   this during compilation, which is easy to overlook in a passing build.
 - The stage-3 reference `pom.xml` (`solutions/stage-3-boot41-java25/pom.xml`) has the same block,
-  with a comment explaining it. This behaviour was checked with JDK 25 javac when the workshop was
-  prepared.
+  with a comment explaining it. Verified in the 2026-10-10 dry run (Corretto 25): without the block,
+  compilation fails with `cannot find symbol` for `method getEmail()` and `method getName()`.
 
 Docs: [Spec tasks](https://kiro.dev/docs/specs/) · [Hooks](https://kiro.dev/docs/hooks/) ·
 [First project: start Kiro from a terminal](https://kiro.dev/docs/getting-started/first-project/)
@@ -750,7 +822,7 @@ git show stage-2 --no-patch
 ```
 
 Look for: `<java.version>25</java.version>`; `lombok` with `<version>${lombok.version}</version>`
-inside `<annotationProcessorPaths>`; the hook reported `Tests run: 13` and `BUILD SUCCESS`, matching
+inside `<annotationProcessorPaths>`; the hook reported `Tests run: 14` and `BUILD SUCCESS`, matching
 the `stage-2` tag message. A lower number: see Troubleshooting.
 
 **Checkpoint**
@@ -776,7 +848,8 @@ web slice), so only a real start proves Hibernate 7 and the Jackson properties.
    mvn -B dependency:tree -Dincludes=org.projectlombok,net.bytebuddy
    ```
 
-   Look for: `major version: 69`, `lombok:jar:1.18.46` and `byte-buddy:jar:1.18.11`.
+   Look for: `major version: 69` (Java 21 classes show 65; both verified in the 2026-10-10 dry run),
+   `lombok:jar:1.18.46` and `byte-buddy:jar:1.18.11`.
 
 2. Start the app in one terminal, with your own local password (never commit it):
 
@@ -789,27 +862,38 @@ web slice), so only a real start proves Hibernate 7 and the Jackson properties.
 
    ```bash
    export APP_ADMIN_PASSWORD='<the-same-password>'
-   curl -s -u admin:"$APP_ADMIN_PASSWORD" -H 'Content-Type: application/json' -d '{"name":"Jane Doe","email":"jane@example.com"}' http://localhost:8080/api/users
+   curl -s -w '\n%{http_code}\n' -u admin:"$APP_ADMIN_PASSWORD" -H 'Content-Type: application/json' -d '{"name":"Jane Doe","email":"jane@example.com"}' http://localhost:8080/api/users
    curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8080/api/users
    curl -s -i -u admin:"$APP_ADMIN_PASSWORD" http://localhost:8080/api/users/1 | grep -iE "^HTTP|X-Request-Id"
    ```
 
 4. Stop the app with **Ctrl+C** in the first terminal.
 
-<details><summary>Example output (yours will differ)</summary>
+<details><summary>Example output (yours will differ), and why the properties are in alphabetical order</summary>
 
 ```text
-{"id":1,"name":"Jane Doe","email":"jane@example.com","createdDate":"2026-10-09T14:03:12.123456Z","lastModifiedDate":"2026-10-09T14:03:12.123456Z","active":true}
+{"active":true,"createdDate":"2026-10-10T14:05:52.659057Z","email":"jane@example.com","id":1,"lastModifiedDate":"2026-10-10T14:05:52.659057Z","name":"Jane Doe"}
+201
 401
 HTTP/1.1 200
 X-Request-Id: 6f1c…
 ```
 
+**Jackson 3 writes JSON properties in alphabetical order** (`active` first). Stage 2 wrote the same
+user in field order (`"id":1,"name":…` first). Verified in the 2026-10-10 dry run. Clients that parse
+JSON don't notice; tests or clients that compare JSON as text do. If one needs a fixed order,
+`@JsonPropertyOrder` (still in `com.fasterxml.jackson.annotation`) on the class sets it. A related
+observation from the same run: the duplicate-e-mail error (a `ProblemDetail`) no longer contains
+`"type":"about:blank"` on stage 3.
+
+The `201` and `"active":true` are the Jackson 3 trap's fix at runtime: before it, this create
+returned 400.
+
 </details>
 
-**Verify:** the startup log names Java 25; `createdDate` is an ISO-8601 **string** ending in `Z`;
-`401` without credentials; `200` and `X-Request-Id` with credentials. A numeric `createdDate`: see
-Troubleshooting.
+**Verify:** the startup log names Java 25; the create returns `201` with `"active":true`;
+`createdDate` is an ISO-8601 **string** ending in `Z`; `401` without credentials; `200` and
+`X-Request-Id` with credentials. A numeric `createdDate` or a 400 for the create: see Troubleshooting.
 
 **Checkpoint:** nothing changed (`git status`).
 
@@ -831,14 +915,14 @@ Troubleshooting.
 
 2. Update the "current state" line in `.kiro/steering/tech.md` to stage 3 (Java 25, Spring Boot
    4.1.1). In `MIGRATION-NOTES.md`, mark the `Stage 2 → 3` deprecations done and add "JDK 23+: Lombok
-   declared in `annotationProcessorPaths`".
+   declared in `annotationProcessorPaths`" and "Jackson 3: `@AllArgsConstructor` removed from `User`".
 3. In `tasks.md`, choose **Sync Files** so finished tasks are marked complete.
 4. Commit and tag:
 
    ```bash
    git add -A
    git commit -m "Stage 3 complete: Spring Boot 4.1.1, Java 25"
-   git tag -a stage-3 -m "Stage 3: Java 25, Spring Boot 4.1.1, Tests run: 13"
+   git tag -a stage-3 -m "Stage 3: Java 25, Spring Boot 4.1.1, Tests run: 14"
    git show stage-3 --no-patch
    ```
 
@@ -849,16 +933,17 @@ diff ../solutions/stage-3-boot41-java25/pom.xml pom.xml
 diff -r ../solutions/stage-3-boot41-java25/src src
 ```
 
-Expect only cosmetic differences: comments and layout. A difference in a dependency, the
-`maven-compiler-plugin` block, an import, a property or the security configuration is worth a second
-look.
+Expect only cosmetic differences: comments and layout. The reference `User.java` has no
+`@AllArgsConstructor` either. A difference in a dependency, the `maven-compiler-plugin` block, an
+import, a property, the security configuration or a Lombok annotation on `User` is worth a second
+look. The reference passes all 14 tests on Corretto 25 (verified in the 2026-10-10 dry run).
 
 Docs: [Specs best practices (Sync Files)](https://kiro.dev/docs/specs/best-practices/) ·
 [Steering](https://kiro.dev/docs/steering/)
 
 </details>
 
-**Checkpoint:** tag `stage-3` with `Tests run: 13` in its message. Module 5 adds `stage-3-final`.
+**Checkpoint:** tag `stage-3` with `Tests run: 14` in its message. Module 5 adds `stage-3-final`.
 
 ---
 
@@ -870,19 +955,23 @@ Docs: [Specs best practices (Sync Files)](https://kiro.dev/docs/specs/best-pract
 - [ ] The Quick Spec `stage-3-boot4` is committed; `JacksonConfig.java` is replaced by two properties.
 - [ ] Parent 4.1.1 with the `-webmvc`, `-webmvc-test` and `-security-test` starters, the relocated
       `@WebMvcTest`, and `SecurityConfig.java` unchanged.
+- [ ] Task 2's red `validUserIsCreated` was read from the log (`FAIL_ON_NULL_FOR_PRIMITIVES`,
+      constructor binding) and fixed by removing `@AllArgsConstructor` from `User`, not by a property
+      or a test change.
 - [ ] Java 25 in `java.version`, `mvn -v` and the agent; major version 69.
 - [ ] Lombok is in `annotationProcessorPaths` with `${lombok.version}`, and you can say why JDK 23+
       needs it.
-- [ ] Tests run is 13; the app returns ISO-8601 dates, 401 and `X-Request-Id`.
-- [ ] Tag `stage-3` records `Tests run: 13`.
+- [ ] Tests run is 14; the app returns 201 for a create, ISO-8601 dates, 401 and `X-Request-Id`.
+- [ ] Tag `stage-3` records `Tests run: 14`.
 
 ## Troubleshooting
 
 | Symptom | Cause | Fix |
 |---|---|---|
+| After task 2: `validUserIsCreated` `Status expected:<201> but was:<400>`; the app answers every create with 400 | Jackson 3 binds the body through Lombok's `@AllArgsConstructor` (`-parameters`) and fails the missing primitive `active` (`FAIL_ON_NULL_FOR_PRIMITIVES`, on by default) | Remove `@AllArgsConstructor` from `User` (Exercise 3.4). Not a property, `Boolean active` or a changed test body. |
 | On JDK 25: `cannot find symbol` for `User`'s getters, setters or constructors | Since JDK 23, javac no longer runs annotation processors found only on the class path, so Lombok never ran | Declare Lombok in `maven-compiler-plugin` `annotationProcessorPaths` with `${lombok.version}` (Exercise 4.2). Don't hand-write getters or remove Lombok. |
 | `release version 25 not supported`, or the agent or hook reports Java 21 | Kiro was started before JDK 25 became the default | Change the default, quit Kiro, start it with `kiro .` from a JDK 25 terminal (Exercise 4.1). |
-| Tests run is lower than 13 | A test was dropped, disabled, or lost its `@Test` | `git diff stage-2 -- src/test`. Restore the test; don't commit until the count matches. |
+| Tests run is lower than 14 | A test was dropped, disabled, or lost its `@Test` | `git diff stage-2 -- src/test`. Restore the test; don't commit until the count matches. |
 | The agent adds a `-classic` starter or `spring-boot-jackson2` | The model reaches for a bridge | **Reject** the hunk (Exercise 3.2). |
 
 <details><summary>More troubleshooting</summary>
@@ -898,11 +987,11 @@ Docs: [Specs best practices (Sync Files)](https://kiro.dev/docs/specs/best-pract
 | `package org.springframework.boot.test.mock.mockito does not exist` | `@MockBean` was removed in Boot 4 | Use `@MockitoBean` from `org.springframework.test.context.bean.override.mockito` (Exercise 2.2). |
 | The `MockBean` grep in Exercise 2.2 shows a comment line | A plain `grep` also matches Javadoc comments | Use the anchored `grep -rnE` from Exercise 2.2, which matches only imports and annotations. |
 | `package org.springframework.boot.test.autoconfigure.web.servlet does not exist` | `@WebMvcTest` moved to the modular test module | Import `org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest` and add `spring-boot-starter-webmvc-test`. |
-| `invalidUserIsRejectedByBeanValidation` returns 403 | `@Import(SecurityConfig.class)` was removed from the test | Restore it (Module 3, Exercise 4.2). |
+| `invalidUserIsRejectedByBeanValidation` fails with `Status expected:<400> but was:<403>` | `@Import(SecurityConfig.class)` was removed from the test | Restore it (Module 3, Exercise 4.2). |
 | `Jackson2ObjectMapperBuilderCustomizer` or `com.fasterxml.jackson.databind` can't be found | Jackson 3 is the default in Boot 4 | Delete `JacksonConfig` and use the two properties (Exercise 3.3). Don't add `spring-boot-jackson2`. |
 | The agent edits `SecurityConfig.java` | A security skill matched the Boot 4 wording | `git restore` the file. The lambda DSL is already valid for Security 7. |
 | Lombok fails with an internal compiler error such as `IllegalAccessError` | An old Lombok version is pinned again | Remove the `<lombok.version>` override or the `<version>` on the Lombok dependency. Boot manages 1.18.46. |
-| A Mockito or Hibernate error that names Byte Buddy | A leftover `byte-buddy.version` override pins an older Byte Buddy than 4.1.1 manages | Remove it. 4.1.1 manages 1.18.11. |
+| A Mockito or Hibernate error that names Byte Buddy | A `byte-buddy.version` override (if you added one in stage 1) pins an older Byte Buddy than 4.1.1 manages | Remove it. 4.1.1 manages 1.18.11. |
 | `javap` prints `major version: 65` after task 3 | Class files from the JDK 21 build were not recompiled | Run `mvn -B -q clean compile`, then `javap` again (Exercise 4.3). |
 | Warnings that a Java agent was loaded dynamically, or that Mockito is self-attaching | Mockito 5's inline mock maker on JDK 21+ | Expected noise; not part of the migration. |
 | Random build failures (missing classes, a corrupt jar) right after a task | Your own Maven build overlapped the hook's build in the shared `target/` | Wait for the hook to finish, then run `mvn -B clean verify` once. |
@@ -1157,7 +1246,8 @@ Look for:
   aren't set.
 - The parent version. 4.1.0 is what the catalog targets, so bump it if you compare with 4.1.1.
 - The files that differ from your stage 3 on `workshop`.
-- The test count (13).
+- The test count (14). If `validUserIsCreated` fails with 400, the transformation kept
+  `@AllArgsConstructor` on `User`: the Jackson 3 trap from Exercise 3.4.
 - Any untracked files, for example a `.kiro/specs/aws-transform/` folder that the power's generic
   flow can create.
 
@@ -1295,8 +1385,9 @@ Things to notice:
    ```
 
 **Verify:** you can say what each recipe would have done for this app, and what it would have left for
-you: the 4.0.x → 4.1.1 bump, the Jackson properties, and possibly the Lombok processor declaration. You
-can also say under which terms your company may run the recipes.
+you: the 4.0.x → 4.1.1 bump, the Jackson properties, and possibly the Lombok processor declaration and
+the `@AllArgsConstructor` fix (the test count and `validUserIsCreated` tell you). You can also say
+under which terms your company may run the recipes.
 
 **A good combination for large codebases:**
 

@@ -11,25 +11,40 @@
 
 The migration content was written against official sources, but parts of it can only be confirmed by
 running it. Work through this list on **macOS and on Linux** (the two supported platforms), and fix the
-material where reality differs.
+material where reality differs. The build and test items marked done were covered on Linux by the
+2026-10-10 EC2 dry run (Amazon Linux 2023, Corretto 8 / 21 / 25, Maven 3.9.11); details in the
+[verification log](verification-log.md). Nothing inside Kiro was covered.
 
 **Builds** (always `clean`; Maven may skip the recompile after a JDK or version change)
-- [ ] `sample-app/` on **JDK 8**: `mvn -B clean verify` ends with `Tests run: 13` and `BUILD SUCCESS`.
-- [ ] `solutions/stage-1-boot27-java21/` passes on **JDK 21**. Module 2 adds the `byte-buddy.version`
-  1.17.8 override unconditionally, as the reference does. Optionally build once without it to learn
-  whether it is strictly needed; the material doesn't depend on the answer.
-- [ ] `solutions/stage-2-boot35-java21/` passes on **JDK 21**. Confirm whether `@Import(SecurityConfig.class)` is needed in `UserControllerTest` (try once without it) and adjust Module 3.
-- [ ] `solutions/stage-3-boot41-java25/` passes on **JDK 25**. Remove the Lombok `annotationProcessorPaths`
-  entry once to see the `cannot find symbol` failure Module 4 teaches (since JDK 23, javac no longer
-  runs class-path annotation processors), then restore it.
-- [ ] The JDK 25 fallback: stage 3 also passes on **JDK 21** with `-Djava.version=21`.
-- [ ] Every stage reports the same total: 13 tests (9 service + 4 web).
-- [ ] [Participant setup, section 7](participant-setup.md#7-pre-download-the-dependencies-for-every-stage)
-  on an empty `~/.m2`: every command succeeds, the cache check lists the four Spring Boot versions,
-  and you know how long it takes on the training network.
+- [x] `sample-app/` on **JDK 8**: `mvn -B clean verify` ends with `Tests run: 14` and `BUILD SUCCESS`.
+  Covered: [2026-10-10 EC2 dry run](verification-log.md).
+- [x] `solutions/stage-1-boot27-java21/` passes on **JDK 21** without a `byte-buddy.version` override,
+  so Module 2 teaches the override as troubleshooting only. Covered: [2026-10-10 EC2 dry run](verification-log.md).
+- [x] `solutions/stage-2-boot35-java21/` passes on **JDK 21**; without `@Import(SecurityConfig.class)`
+  in `UserControllerTest`, the invalid-input test gets 403 instead of 400. Covered:
+  [2026-10-10 EC2 dry run](verification-log.md).
+- [x] `solutions/stage-3-boot41-java25/` passes on **JDK 25**; without the Lombok
+  `annotationProcessorPaths` entry it fails with the `cannot find symbol` error Module 4 teaches
+  (since JDK 23, javac no longer runs class-path annotation processors). Covered:
+  [2026-10-10 EC2 dry run](verification-log.md).
+- [x] The JDK 25 fallback: stage 3 also passes on **JDK 21** with `-Djava.version=21`. Covered:
+  [2026-10-10 EC2 dry run](verification-log.md).
+- [x] Every stage reports the same total: 14 tests (9 service + 5 web). Covered:
+  [2026-10-10 EC2 dry run](verification-log.md).
+- [x] The traps reproduce as the modules describe them: the Module 2 chain (`Tests run: 0`, then
+  400 vs 201), the properties-migrator ERROR report, and the Jackson 3 400 (`validUserIsCreated` fails
+  when `@AllArgsConstructor` is back on `User`). Covered: [2026-10-10 EC2 dry run](verification-log.md).
+- [x] The running app at every stage: 401 / 200 / 400 / 201 / 404, `X-Request-Id`, ISO-8601 dates;
+  `GET /api/users/` (trailing slash) 200 in stages 0–1, 404 from stage 2. Covered:
+  [2026-10-10 EC2 dry run](verification-log.md).
+- [x] [Participant setup, section 7](participant-setup.md#7-pre-download-the-dependencies-for-every-stage):
+  every command succeeds and the cache check lists the four Spring Boot versions. Covered:
+  [2026-10-10 EC2 dry run](verification-log.md).
+- [ ] Repeat the build items once on **macOS**; the dry run was Linux only.
+- [ ] Time section 7 on an empty `~/.m2` on the training network.
 - [ ] Maven Central (or your internal mirror) is reachable from the training network. Corporate proxies are the most common blocker.
 
-**Kiro**
+**Kiro** (all open; the dry run ran the hook commands only as plain shell commands, outside Kiro)
 - [ ] Kiro IDE version: note it in the agenda. UI labels in the modules come from the docs as of
   2026-10-09; screenshot any that differ.
 - [ ] Start Kiro with `kiro .` from a JDK 8 terminal in `sample-app/`, trust the workspace, and confirm
@@ -108,7 +123,7 @@ Facilitation tips:
   is reviewing agent output, not watching it. The one deliberate exception is Module 3, Part 3: the
   mechanical `javax` → `jakarta` rename runs in Autopilot, with the compiler, the guard hook and git as
   the safety net. Switch back to Supervised for the security and test changes.
-- Every time a module says "record the test count", check a few screens. The expected number is 13,
+- Every time a module says "record the test count", check a few screens. The expected number is 14,
   but participants read their own. The silent traps (validation, Vintage engine) are only visible this
   way.
 - Agents vary. Two participants with the same prompt will get different diffs; compare a few in the
@@ -129,7 +144,7 @@ python3 --version && curl --version | head -n 1
 ```
 
 - [ ] `mvn -v`: Maven 3.9+ and `Java version: 1.8.0_…`.
-- [ ] `Tests run: 13` and `BUILD SUCCESS`.
+- [ ] `Tests run: 14` and `BUILD SUCCESS`.
 - [ ] The cache lists `2.2.4.RELEASE`, `2.7.18`, `3.5.16` and `4.1.1`.
 - [ ] Kiro is signed in and was started from that JDK 8 terminal with `kiro .`. The workspace is
   `sample-app/` (not the repository root) and trusted. The Kiro panel shows four steering files and two
@@ -150,8 +165,8 @@ stage's tag resets before the first exercise.
 |---|---|---|
 | 1 (09:15–10:15) | **09:40:** Exercise 4.1, with branch `workshop` and tag `stage-0` | Module 1 changes no code, so nothing to reset: do Part 3 now, then apply the module's cuts. Nobody leaves Module 1 without `stage-0`. |
 | 2 (10:30–12:00) | **11:25:** Exercise 3.1 (Switch the JDK) | Still in Exercise 2.2 (`@Valid`) or earlier: reset to stage 1 (row "Module 3"), then do only step 2 of Exercise 5.1. |
-| 3 (13:00–14:45) | **14:10:** Exercise 5.1 (Write the skill), compiling, 13 tests on the Vintage engine | Still in Part 4: copy the reference skill (the Exercise 5.1 fallback). Not green with 13 tests by 14:35: reset to stage 2 (row "Module 4") in the break. |
-| 4 (15:00–16:20) | **15:50:** Exercise 4.1 (Switch to JDK 25 and restart Kiro) | Exercise 3.4 not green with 13 tests by 16:00: reset to stage 3 (row "Module 5") instead of finishing Part 4. |
+| 3 (13:00–14:45) | **14:10:** Exercise 5.1 (Write the skill), compiling, 14 tests on the Vintage engine | Still in Part 4: copy the reference skill (the Exercise 5.1 fallback). Not green with 14 tests by 14:35: reset to stage 2 (row "Module 4") in the break. |
+| 4 (15:00–16:20) | **15:50:** Exercise 4.1 (Switch to JDK 25 and restart Kiro) | Exercise 3.4 not green with 14 tests by 16:00: reset to stage 3 (row "Module 5") instead of finishing Part 4. |
 | 5 (16:20–16:50) | **16:40:** everyone starts Exercise 5.4 (final verification), wherever they are | `mvn -B clean verify` not green: reset to stage 3 first. Part 2 and the Bugfix lab wait until after the day. |
 
 ### Announcements: hooks, JDK switches, Kiro restarts
@@ -199,8 +214,9 @@ stage"), run from `sample-app/`. It commits the participant's work, copies the r
 | A trap doesn't show (no Lombok error after the JDK switch, no compile errors after a bump) | Incremental compile skipped the classes | Use `clean` (`mvn -B clean compile` / `clean verify`) |
 | Build green, fewer tests ran | JUnit Vintage engine missing (Boot 2.4+). The hook still passes; only the count shows it | See Module 2 |
 | `@Valid` accepts invalid input | `spring-boot-starter-validation` missing (Boot 2.3+) | See Module 2 |
-| Mockito errors that mention Byte Buddy on JDK 21 | Byte Buddy older than the JDK | On Boot 2.7, the `byte-buddy.version` 1.17.8 override; later stages use the Boot-managed version |
+| Mockito or Hibernate errors that name Byte Buddy and Java 21 | Byte Buddy older than the JDK. Not seen with this app: stage 1 passes on Corretto 21 without an override (2026-10-10 dry run) | Troubleshooting only, on Boot 2.7: override `byte-buddy.version` (for example 1.17.8, the version Boot 3.5.16 manages). Later stages use the Boot-managed version |
 | Missing getters (`cannot find symbol`) on JDK 25 | Since JDK 23, javac no longer runs annotation processors found only on the class path | Declare Lombok in `maven-compiler-plugin` `annotationProcessorPaths` (Module 4, Part 4) |
+| Every POST returns 400 after the Boot 4 parent bump; `validUserIsCreated` fails with 400 instead of 201 | Jackson 3 binds the body through Lombok's `@AllArgsConstructor` and rejects the missing primitive `active` | Remove `@AllArgsConstructor` from `User` (Module 4) |
 | Web test returns 403 after the security migration | `@WebMvcTest` didn't load the `SecurityFilterChain` configuration | `@Import(SecurityConfig.class)` |
 | `mvn -v` shows the wrong Java | `JAVA_HOME` not switched | See [participant-setup.md](participant-setup.md#switch-the-jdk-per-terminal) |
 | Agent restored a checkpoint but Maven-generated changes remain | Checkpoints don't capture shell commands | Use `git restore` / `git stash` |

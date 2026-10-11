@@ -9,11 +9,14 @@ description: Move a Maven/Spring Boot project from Java 21 to Java 25 LTS and ch
 - Install a JDK 25 (for example Amazon Corretto 25). Check that **both** `java -version` and `mvn -v`
   report 25. Maven uses `JAVA_HOME`, not necessarily the `java` on your `PATH`.
 - Set `java.version` to 25 in `pom.xml`. With the Spring Boot parent this drives the compiler release.
+- No JDK 25 approved yet? Spring Boot 4.1 runs on Java 17+: keep `java.version` 21 on JDK 21 (or try
+  `mvn -B clean verify -Djava.version=21`). Both passed in the workshop's 2026-10-10 dry run.
 
 ## 2. Annotation processors (most common JDK 23+ break)
 Since JDK 23, javac **no longer runs annotation processors found only on the class path**. Lombok,
 MapStruct, Hibernate's metamodel generator and similar tools then silently do nothing. The build fails
-with `cannot find symbol` for generated getters, setters or builders. Declare them explicitly:
+with `cannot find symbol` for generated getters, setters or builders (in the workshop's 2026-10-10 dry
+run on Corretto 25: `symbol: method getEmail()`, `method getName()`). Declare them explicitly:
 
 ```xml
 <plugin>
@@ -37,7 +40,11 @@ Tools that read or generate class files must know the new class file version:
   (Boot 3.5.16 and 4.1.1 manage 1.18.46). It still needs the processor declaration from section 2.
 - **Byte Buddy / Mockito:** older Byte Buddy versions reject newer JDKs at runtime, so mock-based tests
   fail even though compilation succeeds. Use the version your Spring Boot release manages. Only
-  override it when the error message names Byte Buddy and the Java version.
+  override it when the error message names Byte Buddy and the Java version. The workshop's dry run
+  needed no override (Boot 2.7.18's 1.12.23 on JDK 21, Boot 4.1.1's 1.18.11 on JDK 25).
+- **Mockito noise:** on JDK 21+ Mockito prints "Mockito is currently self-attaching to enable the
+  inline-mock-maker. This will no longer work in future releases of the JDK…". It's a warning, not a
+  failure.
 - **Hibernate** also uses Byte Buddy. Startup errors that mention it point to the same cause.
 - **Maven plugins:** use the versions managed by the Spring Boot parent. Explicitly pinned old plugins
   (compiler, surefire, jacoco) are the usual culprits.
@@ -54,4 +61,6 @@ Tools that read or generate class files must know the new class file version:
 ## 5. Verify
 1. `mvn -B clean verify` on JDK 25 (`clean` matters: Maven may not recompile after a JDK switch). The test count is unchanged.
 2. `mvn -B dependency:tree -Dincludes=net.bytebuddy,org.projectlombok` shows the resolved versions.
-3. Run the app once and check the startup log for warnings about the JDK version.
+3. `javap -v target/classes/<path>/<AnyClass>.class | grep "major version"` prints 69 for Java 25
+   (65 is Java 21). Run it after a `clean` build, or old class files can survive.
+4. Run the app once and check the startup log for warnings about the JDK version.

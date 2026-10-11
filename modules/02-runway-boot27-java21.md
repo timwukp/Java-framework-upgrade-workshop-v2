@@ -11,7 +11,7 @@ the tests still ran.
   count and for `@Valid`, and review its design and tasks **before** any code changes.
 - Run the tasks in **Supervised** mode with the `verify-after-spec-task` hook (`PostTaskExec`).
 - Catch the traps: JUnit 4 tests that silently stop running (Boot 2.4), `@Valid` silently ignored
-  (Boot 2.3), redundant `javax.*` pins, the Lombok pin on JDK 21, and Byte Buddy.
+  (Boot 2.3), redundant `javax.*` pins and the Lombok pin on JDK 21. Byte Buddy needs no override.
 - Diagnose a failure with `#terminal`, then tag `stage-1`.
 
 ## Why this stop
@@ -44,7 +44,7 @@ broke the build. Stage 1 stays on `javax.*`.
 
 ## Prerequisites
 
-- Module 1 is complete: branch `workshop`, tag `stage-0` recording `Tests run: 13`, **Supervised**
+- Module 1 is complete: branch `workshop`, tag `stage-0` recording `Tests run: 14`, **Supervised**
   autonomy, `mvn *` on **Always allow**, steering and `MIGRATION-NOTES.md` committed.
 - JDK 8 is the default for new terminals and Kiro was started from one (`kiro .`). JDK 21 is installed
   ([setup, section 1](../docs/participant-setup.md#1-jdks-8-21-and-25)) and the dependencies are
@@ -62,9 +62,9 @@ mvn -v
 grep -n -A2 "<artifactId>spring-boot-starter-parent</artifactId>" pom.xml
 ```
 
-Expect a clean tree, `stage-0` with `Tests run: 13`, `Java version: 1.8.0_…`, and
+Expect a clean tree, `stage-0` with `Tests run: 14`, `Java version: 1.8.0_…`, and
 `<version>2.2.4.RELEASE</version>` two lines below the parent's `artifactId` (after a comment). The
-total is 13 at every stage (4 web + 9 service tests); if yours differs, ask the instructor.
+total is 14 at every stage (5 web + 9 service tests); if yours differs, ask the instructor.
 
 ## Time box
 
@@ -95,7 +95,7 @@ A Feature spec writes `requirements.md`, `design.md` and `tasks.md` under `.kiro
 
 **Steps**
 
-1. Note your baseline (expected: 13):
+1. Note your baseline (expected: 14):
 
    ```bash
    git status
@@ -118,7 +118,7 @@ A Feature spec writes `requirements.md`, `design.md` and `tasks.md` under `.kiro
 
 1. Click **+** under **Specs** in the Kiro panel (or **Spec** on a new chat's **Let's build**
    screen), then **Feature**.
-2. Paste the prompt below (use your own number if it isn't 13).
+2. Paste the prompt below (use your own number if it isn't 14).
 3. Choose **Requirements-First** when asked; it can't be changed later.
 4. Wait for `requirements.md`. Don't confirm it yet.
 
@@ -129,10 +129,10 @@ Create a Feature spec named stage-1-runway for stage 1 in migration-standards: u
 
 Constraints:
 - Phase A: Spring Boot 2.7.18 while the build stays on JDK 8 (java.version 1.8). Phase B, only after phase A is green: JDK 21. I switch the JDK myself; the phase B task first runs `mvn -v` and stops unless it reports Java 21.
-- Do not run Maven yourself after a task; the verify hook runs `mvn -B clean verify` and reports the Tests run line. Quote that line in your summary. The stage-0 baseline is Tests run: 13. A task is done only if the build passes AND Tests run is at least 13; a green build with fewer tests is a failed task. No separate baseline or gate tasks.
+- Do not run Maven yourself after a task; the verify hook runs `mvn -B clean verify` and reports the Tests run line. Quote that line in your summary. The stage-0 baseline is Tests run: 14. A task is done only if the build passes AND Tests run is at least 14; a green build with fewer tests is a failed task. No separate baseline or gate tasks.
 - The first phase A task changes only the spring-boot-starter-parent version and its comment. Fix each problem it reveals in a later task: one problem per task, naming the Spring Boot release note that explains it.
 - Behaviour must not change: invalid input to POST /api/users gets 400 from Bean Validation (@Valid) and never reaches UserService; unauthenticated requests get 401; unknown user ids get 404; every response has an X-Request-Id header.
-- Prefer versions the Spring Boot parent manages. Remove explicit javax.* API dependencies that a starter already provides. Any remaining pin needs an XML comment explaining why.
+- Prefer versions the Spring Boot parent manages. Remove explicit javax.* API dependencies that a starter already provides. Add no version override (for example byte-buddy.version) unless a build fails without it. Any remaining pin needs an XML comment explaining why.
 - Never delete, disable or weaken a test; keep JUnit 4 (JUnit 5 is stage 2).
 - Do not start the application or run git commands; I do both.
 - Out of scope: jakarta.*, Spring Security changes, JUnit 5, Java language modernization.
@@ -171,8 +171,8 @@ so that a green build cannot hide tests that silently stopped running.
 #### Acceptance criteria
 1. WHEN a task finishes THE SYSTEM SHALL report the Tests run, Failures, Errors and Skipped totals
    from the verify hook's `mvn -B clean verify`.
-2. WHEN a task finishes THE SYSTEM SHALL report a Tests run total of at least 13 (the stage-0 baseline).
-3. IF the Tests run total is lower than 13 THEN THE SYSTEM SHALL treat the task as failed, even when
+2. WHEN a task finishes THE SYSTEM SHALL report a Tests run total of at least 14 (the stage-0 baseline).
+3. IF the Tests run total is lower than 14 THEN THE SYSTEM SHALL treat the task as failed, even when
    the build succeeds.
 4. THE SYSTEM SHALL NOT delete, disable or weaken any existing test.
 
@@ -203,7 +203,7 @@ the database.
 1. WHEN phase B starts THE SYSTEM SHALL confirm that `mvn -v` reports Java 21, and stop otherwise.
 2. THE SYSTEM SHALL set java.version to 21.
 3. WHEN phase B is complete THE SYSTEM SHALL pass `mvn -B clean verify` on JDK 21 with a Tests run
-   total of at least 13.
+   total of at least 14.
 
 ### Out of scope
 - jakarta.*, Spring Security configuration changes, JUnit 5 (stage 2).
@@ -226,7 +226,7 @@ the database.
 <details><summary>Ask Kiro (only if the count criterion is missing or vague), and an optional check</summary>
 
 ```text
-#spec:stage-1-runway In the test-count requirement, add this acceptance criterion: IF the Tests run total is lower than 13 THEN the task is failed, even when the build succeeds. Change nothing else.
+#spec:stage-1-runway In the test-count requirement, add this acceptance criterion: IF the Tests run total is lower than 14 THEN the task is failed, even when the build succeeds. Change nothing else.
 ```
 
 Optional, if you have time: **Analyze Requirements** (in the chat options, or the **Continue**
@@ -256,7 +256,8 @@ Look for: EARS lines, your baseline number, and the 400 criterion.
    - [ ] **Order:** the parent bump first and alone, on JDK 8; then the fixes; then the JDK switch.
    - [ ] **Verification:** it counts tests against the baseline. A passing build alone isn't enough.
    - [ ] **Risks:** at least Bean Validation (Boot 2.3), the Vintage engine (Boot 2.4) and the Lombok
-         pin on JDK 21. Bonus: circular references (2.6), the dropped `.RELEASE` (2.4), Byte Buddy, H2 2.x.
+         pin on JDK 21. Bonus: circular references (2.6), the dropped `.RELEASE` (2.4), Byte Buddy (watch
+         only, no planned override), H2 2.x.
    - [ ] **No invented pins:** pinning anything the parent manages needs a written reason (`pom-rules`).
 2. Let the playbook (manual steering) check the design:
 
@@ -296,7 +297,8 @@ Phase B (JDK 21)
    - [ ] Task 1 changes **only** the parent version (and its comment).
    - [ ] One task per fix, **test engine first** (Part 2 shows why), pin removal after Bean Validation.
    - [ ] The phase B task opens with the `mvn -v` check.
-   - [ ] No baseline or gate tasks; no task builds, edits `src/test/`, starts the app or runs `git`.
+   - [ ] No baseline, gate or Byte Buddy override task; no task builds, edits `src/test/`, starts the
+         app or runs `git`.
    - [ ] A strict chain, all required. **Run all Tasks** runs independent tasks concurrently in waves
          (parallel `pom.xml` edits and builds collide) and skips optional tasks.
 2. If you edited `requirements.md` or `design.md`, choose **Sync Files** in `tasks.md`.
@@ -305,7 +307,7 @@ Phase B (JDK 21)
 <details><summary>Ask Kiro (only if the order or dependencies are wrong)</summary>
 
 ```text
-#spec:stage-1-runway Reorder tasks.md so that every task depends on the previous one: parent bump only, test-engine fix, Bean Validation fix, javax.* pin removal, then the phase B task. Remove any baseline or gate task. Keep one problem per task. Do not change requirements.md or design.md.
+#spec:stage-1-runway Reorder tasks.md so that every task depends on the previous one: parent bump only, test-engine fix, Bean Validation fix, javax.* pin removal, then the phase B task. Remove any baseline, gate or Byte Buddy override task. Keep one problem per task. Do not change requirements.md or design.md.
 ```
 
 </details>
@@ -329,7 +331,7 @@ Tasks**, so you see each trap. Task numbers follow Exercise 1.5.
 **The hook** runs `mvn -B clean verify` once after each task. On success the agent gets the
 `Tests run` summary and `BUILD SUCCESS` and quotes them; on failure, the last 80 lines. It passes
 **whenever the build passes, even when fewer tests ran**. Green isn't done: comparing the count with
-13 is your job, and requirement 2's.
+14 is your job, and requirement 2's.
 
 **Your check:** read the `Tests run` line the agent quotes, and the hook's run in the **Kiro output
 panel**. To build yourself (no credits), first wait until the hook has finished:
@@ -338,7 +340,7 @@ panel**. To build yourself (no credits), first wait until the hook has finished:
 mvn -B clean verify | grep -E "Tests run:|BUILD" | tail -n 2
 ```
 
-Expect `Tests run: 13, Failures: 0, Errors: 0, Skipped: 0` and `BUILD SUCCESS`. **Never run two Maven
+Expect `Tests run: 14, Failures: 0, Errors: 0, Skipped: 0` and `BUILD SUCCESS`. **Never run two Maven
 builds at once**: they share `target/`.
 
 <details><summary>Background: how the hook works</summary>
@@ -359,6 +361,11 @@ cat .kiro/hooks/verify-after-spec-task.json
   80 lines of the build there.
 - Hook execution logs appear in the Kiro output panel.
 
+Verified in the 2026-10-10 dry run (the command run as a plain shell command on Linux, Corretto):
+green, it exits 0 and prints the `Tests run` line and `BUILD SUCCESS` on stdout; red, it exits 1 with
+the summary on stdout and the last 80 lines, including the failing test, on stderr. That run didn't
+cover how Kiro hands either stream to the agent.
+
 </details>
 
 ### Exercise 2.1: Bump the parent: green, but nothing ran (12 minutes)
@@ -373,8 +380,9 @@ cat .kiro/hooks/verify-after-spec-task.json
 3. When the task is Done, find the hook's run in the output panel and read the result the agent
    quotes. If the agent called the task a success, use the prompt in the block below.
 
-**What to expect:** `BUILD SUCCESS`, with `Tests run: 0` or no `Tests run` line, against 13 in
-`git tag -n1 -l stage-0`. The hook passed.
+**What to expect:** `BUILD SUCCESS` with `Tests run: 0, Failures: 0, Errors: 0, Skipped: 0`
+(verified in the 2026-10-10 dry run, Corretto 8), against 14 in `git tag -n1 -l stage-0`. The hook
+passed.
 
 **Why:** Boot 2.4 removed the Vintage engine from `spring-boot-starter-test`. `junit:junit` is
 declared, so the JUnit 4 tests compile, but nothing on the JUnit Platform runs them.
@@ -397,7 +405,7 @@ temporary fix: in Module 3 the tests move to JUnit Jupiter and the engine goes a
 rather than rely on memory. If `#url` fails on your network, paste the quote above instead.
 
 ```text
-#spec:stage-1-runway #url:https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.4-Release-Notes After task 1 the build is green but Tests run is 0; the stage-0 baseline is 13. By requirement 2 this task failed. Explain the cause using the linked release notes, then continue with the test-engine task. Do not change any test file.
+#spec:stage-1-runway #url:https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.4-Release-Notes After task 1 the build is green but Tests run is 0; the stage-0 baseline is 14. By requirement 2 this task failed. Explain the cause using the linked release notes, then continue with the test-engine task. Do not change any test file.
 ```
 
 </details>
@@ -420,7 +428,7 @@ rather than rely on memory. If `#url` fails on your network, paste the quote abo
 ```
 
    **Accept** it if no test file changed. **Reject** rewrites to JUnit 5 (Module 3).
-5. The hook will most likely **fail** now. That's expected: go to Exercise 2.2.
+5. The hook **fails** now (as in the 2026-10-10 dry run). That's expected: go to Exercise 2.2.
 
 **Verify** (after the hook has finished)
 
@@ -428,7 +436,7 @@ rather than rely on memory. If `#url` fails on your network, paste the quote abo
 mvn -B clean verify | grep -E "Tests run:.* in com\.example"
 ```
 
-Look for two per-class lines again (4 and 9 tests) and one failure in `UserControllerTest`.
+Look for two per-class lines again (5 and 9 tests) and one failure in `UserControllerTest`.
 **Lesson:** a green build isn't a passing test suite.
 
 **Checkpoint:** commit at the end of Exercise 2.2.
@@ -438,12 +446,12 @@ Look for two per-class lines again (4 and 9 tests) and one failure in `UserContr
 **Goal:** Boot 2.3's silent trap, hidden until now by the first one.
 
 **What to expect:** with the JUnit 4 tests running again, one fails, and the hook's stderr reaches
-the agent. Example (yours will differ):
+the agent. From the 2026-10-10 dry run (Corretto 8; line numbers may differ):
 
 ```text
 [ERROR] Failures:
 [ERROR]   UserControllerTest.invalidUserIsRejectedByBeanValidation:... Status expected:<400> but was:<201>
-[ERROR] Tests run: 13, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Tests run: 14, Failures: 1, Errors: 0, Skipped: 0
 ```
 
 **Why:** since Boot 2.3 the web starter no longer brings Bean Validation. The pinned `validation-api`
@@ -487,7 +495,7 @@ would have shipped both problems.
 3. If the fix happened outside task 3, choose **Sync Files** in `tasks.md` (it marks implemented tasks
    completed).
 
-**Verify:** the latest hook result shows `Tests run: 13, Failures: 0` and `BUILD SUCCESS` (if no hook
+**Verify:** the latest hook result shows `Tests run: 14, Failures: 0` and `BUILD SUCCESS` (if no hook
 ran after the fix, run the count check yourself). Then:
 
 ```bash
@@ -515,7 +523,7 @@ move to `jakarta.*` through the starters alone.
 2. **Accept** the removal of the three `javax` blocks. **Reject** changes to Java files: the imports
    stay `javax.*` in stage 1.
 
-**Verify:** the hook reports `Tests run: 13` and `BUILD SUCCESS`. Then:
+**Verify:** the hook reports `Tests run: 14` and `BUILD SUCCESS`. Then:
 
 ```bash
 grep -n "<groupId>javax" pom.xml
@@ -567,7 +575,7 @@ grep -n -A2 "<artifactId>spring-boot-starter-parent</artifactId>" pom.xml
 mvn -B clean verify | grep -E "Tests run:|BUILD" | tail -n 2
 ```
 
-**Verify:** `1.8.0_…`, `2.7.18`, `Tests run: 13`, `BUILD SUCCESS`. A deprecation note about
+**Verify:** `1.8.0_…`, `2.7.18`, `Tests run: 14`, `BUILD SUCCESS`. A deprecation note about
 `WebSecurityConfigurerAdapter` (Spring Security 5.7) is fine; Module 3 replaces it.
 
 **Checkpoint:** nothing to commit; `git status --short` prints nothing.
@@ -622,8 +630,9 @@ build output to the agent.
    mvn -B -q clean compile
    ```
 
-   It fails, for example with an `IllegalAccessError` from a `lombok…` class that can't access
-   `com.sun.tools.javac…`. Without `clean`, Maven may skip recompiling and hide the failure.
+   It fails with `java.lang.IllegalAccessError: class lombok.javac.apt.LombokProcessor … cannot
+   access class com.sun.tools.javac.processing.JavacProcessingEnvironment` (verified in the
+   2026-10-10 dry run, Corretto 21). Without `clean`, Maven may skip recompiling and hide the failure.
 2. Start a new chat session (Default agent). `#terminal` attaches recent terminal output.
 
 **Ask Kiro**
@@ -667,7 +676,7 @@ for example `#problems why is this line flagged?` with `User.java` open.
 2. **Accept** the hunks only if they set `<java.version>21</java.version>`, remove the Lombok
    `<version>1.18.10</version>` line (keep `provided`), and change nothing else. The parent maps
    `java.version` to the compiler (`pom-rules`).
-3. Read the hook's result: `Tests run: 13` and `BUILD SUCCESS`. A Byte Buddy error? Go to Exercise 3.4.
+3. Read the hook's result: `Tests run: 14` and `BUILD SUCCESS`. A Byte Buddy error? See Exercise 3.4.
 
 **Verify** (after the hook has finished)
 
@@ -677,7 +686,8 @@ mvn -B dependency:tree -Dincludes=org.projectlombok | grep lombok
 javap -v target/classes/com/example/usermanagement/UserManagementApplication.class | grep "major version"
 ```
 
-Look for `21`, `lombok:jar:1.18.30:provided`, and `major version: 65` (Java 21 class files).
+Look for `21`, `lombok:jar:1.18.30:provided`, and `major version: 65` (Java 21 class files, as in
+the 2026-10-10 dry run).
 
 **Checkpoint**
 
@@ -686,15 +696,16 @@ git add -A
 git commit -m "Stage 1 phase B: Java 21, Lombok managed by Spring Boot 2.7.18"
 ```
 
-### Exercise 3.4: The Byte Buddy override and a smoke run (6 minutes)
+### Exercise 3.4: Check Byte Buddy, and a smoke run (6 minutes)
 
-**Goal:** the reference solution's Byte Buddy override, then one app start.
+**Goal:** confirm that the Byte Buddy version the parent manages works on JDK 21, then one app start.
 
 Mockito and Hibernate generate classes at runtime with **Byte Buddy**; Boot 2.7.18 manages
-**1.12.23**, released before Java 21. Add the override **in every case**, error or not: it matches the
-reference, has a written reason (`pom-rules`), and Module 3 removes it.
+**1.12.23**, released before Java 21. In the 2026-10-10 dry run (Corretto 21) all 14 tests and the
+running app worked with it, so the reference adds **no override**. Override it only if an error names
+Byte Buddy and Java 21.
 
-<details><summary>Background: Byte Buddy 1.12.23 on Java 21, a diagnosis prompt, and an optional before-and-after check</summary>
+<details><summary>Background: Byte Buddy 1.12.23 on Java 21, and what the dry run showed</summary>
 
 - Spring Boot 2.7.18 manages Byte Buddy 1.12.23
   ([spring-boot-dependencies at v2.7.18](https://github.com/spring-projects/spring-boot/blob/v2.7.18/spring-boot-project/spring-boot-dependencies/build.gradle)).
@@ -707,30 +718,20 @@ reference, has a written reason (`pom-rules`), and Module 3 removes it.
   ([OpenedClassReader at byte-buddy-1.12.23](https://raw.githubusercontent.com/raphw/byte-buddy/byte-buddy-1.12.23/byte-buddy-dep/src/main/java/net/bytebuddy/utility/OpenedClassReader.java)).
 
 > Verify: the error wording above is paraphrased from the linked source; it isn't recorded in the
-> workshop's research notes. Whether this app's tests or startup actually hit that error on JDK 21
-> with Byte Buddy 1.12.23 has **not** been confirmed by a build either. It depends on which code paths
-> Mockito and Hibernate take. Your instructor's dry run tells you whether the error appears in this
-> room.
+> workshop's research notes.
+
+Verified in the 2026-10-10 dry run (Corretto 21): the stage-1 reference without an override passes all
+14 tests, and the running app, where Hibernate uses Byte Buddy too, answered every smoke-test request.
+This app's code paths don't hit that error; your own services may take others, hence the fallback below.
 
 - Byte Buddy 1.17.8 is the version Spring Boot 3.5.16 manages
   ([spring-boot-dependencies at v3.5.16](https://github.com/spring-projects/spring-boot/blob/v3.5.16/spring-boot-project/spring-boot-dependencies/build.gradle)),
-  so stage 2 drops the override and lets the parent manage it again.
+  which makes it the natural override; Module 3 removes any override at the 3.5.16 parent bump.
 
-**Ask Kiro** (only if the hook or a build showed an error that names Byte Buddy):
-
-```text
-#terminal The output above fails on JDK 21 with an error that mentions Byte Buddy. Which dependencies bring Byte Buddy, which version does Spring Boot 2.7.18 manage, and what is the smallest pom.xml change that fixes it? Use mvn dependency:tree instead of guessing. Answer only; do not change any files.
-```
-
-> Verify in your dry run: Byte Buddy 1.17.8 with the managed Mockito 4.5.1 and Hibernate
-> 5.6.15.Final. If the override causes `net.bytebuddy` errors, remove it and tell the instructor.
-
-**Optional, before you add the override:** search a full build for Byte Buddy messages, then
-smoke-run the app once with 1.12.23 and stop it with **Ctrl+C**.
+Optional: search a full build for Byte Buddy messages (expect no output):
 
 ```bash
 mvn -B clean verify | grep -n -i -E "byte ?buddy|is not supported by the current version"
-mvn spring-boot:run
 ```
 
 </details>
@@ -743,24 +744,47 @@ mvn spring-boot:run
    mvn -B dependency:tree -Dincludes=net.bytebuddy | grep bytebuddy
    ```
 
-2. Saw an error naming Byte Buddy? Diagnose it first (prompt in the block above).
-3. Add the override in plain chat (no hook runs; you build).
+2. Did the hook or a build show an error that names Byte Buddy? Only then use the block below.
+   Otherwise change nothing: the reference keeps the managed version.
+
+<details><summary>Only if an error names Byte Buddy: diagnose it, then override <code>byte-buddy.version</code></summary>
+
+**Ask Kiro** (diagnosis first):
+
+```text
+#terminal The output above fails on JDK 21 with an error that mentions Byte Buddy. Which dependencies bring Byte Buddy, which version does Spring Boot 2.7.18 manage, and what is the smallest pom.xml change that fixes it? Use mvn dependency:tree instead of guessing. Answer only; do not change any files.
+```
+
+Then add the override in plain chat (no hook runs; you build):
 
 **Ask Kiro**
 
 ```text
-#pom.xml Spring Boot 2.7.18 manages Byte Buddy 1.12.23, which was released before Java 21. In <properties>, add <byte-buddy.version>1.17.8</byte-buddy.version> (the version Spring Boot 3.5.16 manages) with an XML comment that explains why the override exists and that stage 2 removes it. Change nothing else, and do not run Maven; I run the build myself.
+#pom.xml Spring Boot 2.7.18 manages Byte Buddy 1.12.23, which was released before Java 21, and the build fails with the Byte Buddy error above. In <properties>, add <byte-buddy.version>1.17.8</byte-buddy.version> (the version Spring Boot 3.5.16 manages) with an XML comment that names the error it fixes and says that stage 2 removes it. Change nothing else, and do not run Maven; I run the build myself.
 ```
 
-4. **Accept** the hunk: one property and one comment inside `<properties>`.
-5. Build once:
+**Accept** the hunk (one property and one comment inside `<properties>`), then build once:
 
-   ```bash
-   mvn -B dependency:tree -Dincludes=net.bytebuddy | grep bytebuddy
-   mvn -B clean verify | grep -E "Tests run:|BUILD" | tail -n 2
-   ```
+```bash
+mvn -B dependency:tree -Dincludes=net.bytebuddy | grep bytebuddy
+mvn -B clean verify | grep -E "Tests run:|BUILD" | tail -n 2
+```
 
-6. Smoke-run the app. Hibernate and H2 2.x start only here: `UserServiceTest` is plain Mockito, and
+Look for `byte-buddy` (and `byte-buddy-agent`) at `1.17.8`, `Tests run: 14` and `BUILD SUCCESS`. Your
+`pom.xml` now differs from the reference by this one property; Module 3's task 1 removes it.
+
+> Verify: Hibernate 5.6.15.Final with Byte Buddy 1.17.8 at runtime. The 2026-10-10 dry run built and
+> tested an earlier stage-1 reference that had this override (Corretto 21, all tests green) but didn't
+> start that app. If the override causes `net.bytebuddy` errors, remove it and tell the instructor.
+
+```bash
+git add -A
+git commit -m "Stage 1 phase B: Byte Buddy override for Java 21"
+```
+
+</details>
+
+3. Smoke-run the app. Hibernate and H2 2.x start only here: `UserServiceTest` is plain Mockito, and
    `UserControllerTest` loads only the web slice (with the security configuration).
 
    ```bash
@@ -781,17 +805,18 @@ curl -s -o /dev/null -w "%{http_code}\n" -u admin:<password> -H "Content-Type: a
 
 Look for `400`. Then stop the app with **Ctrl+C**.
 
+In the 2026-10-10 dry run the stage-1 reference (Corretto 21) answered 401 without credentials, 200
+for the list, 400 for this request, 201 for a valid user and 404 for an unknown id, each with an
+`X-Request-Id` header and ISO-8601 dates. `GET /api/users/` with a trailing slash still returned 200
+on Boot 2.7; Module 3 shows why that changes.
+
 </details>
 
-**Verify:** `byte-buddy` (and `byte-buddy-agent`) at `1.17.8`, `Tests run: 13`, `BUILD SUCCESS`, and
-an app start with no Byte Buddy error.
+**Verify:** `byte-buddy` (and `byte-buddy-agent`) at `1.12.23` (`1.17.8` only if you added the
+override), `Tests run: 14`, `BUILD SUCCESS`, and an app start with no Byte Buddy error.
 
-**Checkpoint**
-
-```bash
-git add -A
-git commit -m "Stage 1 phase B: Byte Buddy override for Java 21"
-```
+**Checkpoint:** nothing to commit unless you added the override (committed in the block above);
+`git status --short` prints nothing.
 
 ---
 
@@ -811,8 +836,8 @@ This is plain chat, not a spec task, so the hook doesn't run. You run the build 
 
 **Steps**
 
-1. Check that the tree is clean (you committed at the end of Exercise 3.4), then start a new chat
-   session (Default agent):
+1. Check that the tree is clean (you committed at the end of Exercise 3.3, or 3.4 if you added an
+   override), then start a new chat session (Default agent):
 
    ```bash
    git status --short
@@ -845,18 +870,18 @@ diff -ru ../solutions/stage-1-boot27-java21/src/main src/main
 Look for:
 
 - No output from `grep`.
-- `Tests run: 13` and `BUILD SUCCESS`. The constructor injection works with the existing
+- `Tests run: 14` and `BUILD SUCCESS`. The constructor injection works with the existing
   `@InjectMocks` and `@MockBean` tests.
 - Small or no differences from the reference solution. Formatting and comments may differ;
   annotations, types and return types shouldn't.
 
-> Verify: the JSON format of `createdDate` and `lastModifiedDate`. Serializing an `Instant` may look
-> slightly different from the old `java.util.Date` output, and phase A already changed date
-> formatting once: "This release upgrades to Jackson 2.11 which includes a change to the default
-> formatting of java.util.Date and java.util.Calendar"
-> ([Spring Boot 2.3 Release Notes](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.3-Release-Notes)).
-> No test covers it. If API clients parse these fields, compare a created user's JSON from the
-> `stage-0` build and from this one.
+Verified in the 2026-10-10 dry run: `createdDate` and `lastModifiedDate` stay ISO-8601 but change
+shape. Stage 0 (`java.util.Date`) returned `2026-10-10T14:05:14.831+0000`; the stage-1 reference
+(`Instant`) returns `2026-10-10T14:05:26.019530732Z`, in UTC with up to nine fraction digits. Phase A
+already changed date formatting once: "This release upgrades to Jackson 2.11 which includes a change
+to the default formatting of java.util.Date and java.util.Calendar"
+([Spring Boot 2.3 Release Notes](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.3-Release-Notes)).
+No test covers it. If API clients parse these fields, check that they accept the new form.
 
 **Checkpoint**
 
@@ -887,15 +912,15 @@ git commit -m "Stage 1: java.time, constructor injection, @GetMapping and friend
 2. In `.kiro/steering/tech.md`, set the "current state" line to stage 1: Java 21, Spring Boot 2.7.18
    (Spring Framework 5.3.x), still `javax.*`, JUnit 4 on the Vintage engine.
 3. `diff ../solutions/stage-1-boot27-java21/pom.xml pom.xml`. Comments, description and order may
-   differ; these must match: parent `2.7.18`, `java.version` 21, `byte-buddy.version` 1.17.8,
-   `spring-boot-starter-validation`, `junit-vintage-engine` (test, `hamcrest-core` excluded), Lombok
-   without a version, no `javax` dependencies.
-4. If step 1 printed `Tests run: 13` (as in your `stage-0` tag), commit and tag:
+   differ; these must match: parent `2.7.18`, `java.version` 21, no `byte-buddy.version` (unless
+   Exercise 3.4 needed it), `spring-boot-starter-validation`, `junit-vintage-engine` (test,
+   `hamcrest-core` excluded), Lombok without a version, no `javax` dependencies.
+4. If step 1 printed `Tests run: 14` (as in your `stage-0` tag), commit and tag:
 
    ```bash
    git add -A
    git commit -m "Stage 1 complete: Spring Boot 2.7.18 on Java 21"
-   git tag -a stage-1 -m "Stage 1: Java 21, Spring Boot 2.7.18, Tests run: 13"
+   git tag -a stage-1 -m "Stage 1: Java 21, Spring Boot 2.7.18, Tests run: 14"
    ```
 
 **Verify**
@@ -927,15 +952,16 @@ JDK 21 and tags `stage-1`). Then do step 2 of Exercise 5.1 and commit.
 
 ## Checklist
 
-- [ ] Spec `stage-1-runway` committed, with EARS criteria for "Tests run ≥ 13" and "invalid input →
+- [ ] Spec `stage-1-runway` committed, with EARS criteria for "Tests run ≥ 14" and "invalid input →
       400"; design and task order reviewed before any task ran.
 - [ ] You can explain why the hook passes even when fewer tests ran.
 - [ ] `Tests run: 0` after the bare bump, fixed with `junit-vintage-engine`; the 201 failure fixed
       with `spring-boot-starter-validation`, not by changing the test.
-- [ ] No `javax` dependencies and no Lombok version in `pom.xml`; Byte Buddy at 1.17.8.
+- [ ] No `javax` dependencies and no Lombok version in `pom.xml`; Byte Buddy managed by the parent
+      (1.12.23), with no override unless an error named Byte Buddy.
 - [ ] JDK 21 is the default, Kiro restarted with `kiro .`, `#terminal` used, and the app starts.
 - [ ] Optional: `java.time.Instant`, constructor injection, `@GetMapping`-style annotations.
-- [ ] Tag `stage-1` records the same `Tests run` as `stage-0` (13).
+- [ ] Tag `stage-1` records the same `Tests run` as `stage-0` (14).
 
 ## Troubleshooting
 
@@ -950,11 +976,11 @@ JDK 21 and tags `stage-1`). Then do step 2 of Exercise 5.1 and commit.
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `IllegalAccessError` mentioning `lombok` and `com.sun.tools.javac` | Lombok pinned to 1.18.10, which can't run on JDK 16+ | Remove the Lombok `<version>`; Boot 2.7.18 manages 1.18.30. |
+| `IllegalAccessError`: `lombok.javac.apt.LombokProcessor` cannot access `com.sun.tools.javac.processing.JavacProcessingEnvironment` | Lombok pinned to 1.18.10, which can't run on JDK 16+ | Remove the Lombok `<version>`; Boot 2.7.18 manages 1.18.30. |
 | Maven can't resolve parent `2.7.18.RELEASE` | Spring Boot dropped the `.RELEASE` suffix in 2.4 | Use `<version>2.7.18</version>`. |
 | `package javax.validation.constraints does not exist` | The `validation-api` pin was removed before the validation starter was added | Add `spring-boot-starter-validation`. |
 | `BeanCurrentlyInCreationException` at startup or in a test | Boot 2.6+ prohibits circular references | Break the cycle. Use `spring.main.allow-circular-references=true` only as a temporary measure. |
-| The agent says a task succeeded, but the count is below 13 | The hook exits 0 whenever the build passes; a drop shows only in the `Tests run` line it reports | Requirement 2 makes this a failure. Tell the agent with `#spec:stage-1-runway` and the numbers. |
+| The agent says a task succeeded, but the count is below 14 | The hook exits 0 whenever the build passes; a drop shows only in the `Tests run` line it reports | Requirement 2 makes this a failure. Tell the agent with `#spec:stage-1-runway` and the numbers. |
 | The agent runs `mvn` itself after a task | The spec constraint is missing | Add "Do not run Maven yourself after a task; the verify hook runs it" to the spec, and wait for the hook. |
 | The hook never runs | Hook disabled, or the work wasn't a spec task (plain chat doesn't fire `PostTaskExec`) | Check the eye icon in the Agent Hooks panel and the Kiro output panel. Run spec tasks from `tasks.md`. |
 | Hook times out | First build after the bump downloads many artifacts | With no hook running, run `mvn -B clean verify` once yourself to fill the local repository, then rerun the task. |
@@ -964,8 +990,8 @@ JDK 21 and tags `stage-1`). Then do step 2 of Exercise 5.1 and commit.
 | `#url` fails or is very slow | Web fetch blocked or slow on your network | Paste the quote from the module's Background block instead. |
 | The agent rewrites tests to JUnit 5, or adds `@Ignore` | Out of scope for stage 1; against `migration-standards` | **Reject** the hunks; add `#steering:migration-standards.md` to your next prompt. |
 | No Lombok error on JDK 21 in Exercise 3.2, or `javap` shows major version 52 | Incremental compilation skipped the classes | Keep `clean` in every build command. |
-| An error saying the class file version isn't supported by the current version of Byte Buddy | Managed Byte Buddy 1.12.23 predates Java 21 | Set `<byte-buddy.version>1.17.8</byte-buddy.version>` (Exercise 3.4). |
-| Errors from `net.bytebuddy` classes after adding the override | > Verify: compatibility of 1.17.8 with Mockito 4.5.1 / Hibernate 5.6.15 | Remove the override and tell the instructor (dry-run notes). |
+| A Mockito or Hibernate error that names Byte Buddy and Java 21 (class file version not supported by the current version of Byte Buddy) | Managed Byte Buddy 1.12.23 predates Java 21; this app didn't hit it in the 2026-10-10 dry run | Only then override: `<byte-buddy.version>1.17.8</byte-buddy.version>` (Exercise 3.4). |
+| Errors from `net.bytebuddy` classes after adding the override | > Verify: 1.17.8 with Hibernate 5.6.15 at runtime (the tests passed with it in the 2026-10-10 dry run) | Remove the override and tell the instructor (dry-run notes). |
 | `mvn spring-boot:run`: port 8080 already in use | Another process uses the port | Stop it, or run `SERVER_PORT=8081 mvn spring-boot:run`. |
 | An agent turn went wrong | Unwanted edits | **Revert** (last turn) or **Restore** (checkpoint), then `git status` and `git restore <file>`. Checkpoints don't capture what `mvn` changed on disk; your commits do. |
 
@@ -999,4 +1025,4 @@ providers, manual and `fileMatch` steering, permissions, checkpoints, `kiro .`.
 
 [Module 3: Spring Boot 3.5 and Jakarta EE](03-spring-boot-3.md): `javax.*` → `jakarta.*` with the
 `jakarta-import-guard` hook on, a `SecurityFilterChain` bean, and JUnit Jupiter, after which the
-Vintage engine and the Byte Buddy override go away.
+Vintage engine (and a Byte Buddy override, if you added one) goes away.

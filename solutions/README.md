@@ -5,11 +5,11 @@ Each folder is the reference state of `sample-app/` at the end of a stage. They 
 
 | Folder | End of | Java | Spring Boot | Key changes from the previous stage |
 |---|---|---|---|---|
-| `stage-1-boot27-java21/` | Module 2 | 21 | 2.7.18 | Parent bump; `spring-boot-starter-validation`; JUnit Vintage engine; Lombok pin removed; `javax.*` API pins removed; Byte Buddy override for JDK 21; `java.time`, constructor injection, `@GetMapping` |
+| `stage-1-boot27-java21/` | Module 2 | 21 | 2.7.18 | Parent bump; `spring-boot-starter-validation`; JUnit Vintage engine; Lombok pin removed; `javax.*` API pins removed; no Byte Buddy override (not needed on JDK 21); `java.time`, constructor injection, `@GetMapping` |
 | `stage-2-boot35-java21/` | Module 3 | 21 | 3.5.16 | `jakarta.*`; `SecurityFilterChain` + lambda DSL; `InMemoryUserDetailsManager`; `ProblemDetail`; renamed `server.max-http-request-header-size`; no explicit Hibernate dialect; JUnit Jupiter; `@Import(SecurityConfig.class)` in the web test |
-| `stage-3-boot41-java25/` | Module 4 | 25 | 4.1.1 | `spring-boot-starter-webmvc` and per-technology test starters; `@MockitoBean`; relocated `@WebMvcTest`; Jackson customizer replaced by `spring.jackson.*` properties; Lombok declared as an annotation processor (required on JDK 23+) |
+| `stage-3-boot41-java25/` | Module 4 | 25 | 4.1.1 | `spring-boot-starter-webmvc` and per-technology test starters; `@MockitoBean`; relocated `@WebMvcTest`; Jackson customizer replaced by `spring.jackson.*` properties; `@AllArgsConstructor` removed from `User` (with Jackson 3 it made every POST return 400); Lombok declared as an annotation processor (required on JDK 23+) |
 
-Every stage has the same 13 tests (9 service + 4 web). The Kiro configuration (`.kiro/`) is not
+Every stage has the same 14 tests (9 service + 5 web). The Kiro configuration (`.kiro/`) is not
 duplicated here; you keep your own workspace's `.kiro/` folder and specs.
 
 ## Reset your workspace to a stage (the one procedure all modules use)
@@ -45,7 +45,7 @@ JDK and tag from your row.
    [participant-setup.md](../docs/participant-setup.md#switch-the-jdk-per-terminal)). **Quit Kiro and
    start it again from that terminal** with `kiro .`, so the agent and the hooks use the same JDK.
 
-4. Check that the build passes and shows 13 tests:
+4. Check that the build passes and shows 14 tests:
 
    ```bash
    mvn -B clean verify | tail -n 30
@@ -58,7 +58,7 @@ JDK and tag from your row.
    ```
 
    ```bash
-   git tag -f -a stage-1 -m "Stage 1 (reference reset). Tests run: 13"
+   git tag -f -a stage-1 -m "Stage 1 (reference reset). Tests run: 14"
    ```
 
 6. In the Agent Hooks panel, set the hooks as shown in your row.
@@ -66,7 +66,9 @@ JDK and tag from your row.
 ## Status of these solutions
 
 These files were written against the official migration guides and the Spring Boot 2.7.18 / 3.5.16 /
-4.1.1 sources, and syntax-checked with `javac`, but **they have not been built in this repository's
-CI**. The participant setup builds all three on every participant's machine
+4.1.1 sources. They are not built in this repository's CI, but all three passed with 14 tests in the
+2026-10-10 dry run on Linux (stages 1 and 2 on Corretto 21, stage 3 on Corretto 25); see the
+[verification log](../docs/verification-log.md). The participant setup builds all three on every
+participant's machine
 ([section 7](../docs/participant-setup.md#7-pre-download-the-dependencies-for-every-stage)), and the
 instructor dry run must do the same. Report any failure as an issue.

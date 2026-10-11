@@ -20,10 +20,10 @@ Stage 3 (Java 25, Spring Boot 4.1) passes four quality gates before you call the
 
 ## Prerequisites
 
-- Module 4 is finished: tag `stage-3`, Spring Boot 4.1.1, `java.version` 25, 13 tests passing on
+- Module 4 is finished: tag `stage-3`, Spring Boot 4.1.1, `java.version` 25, 14 tests passing on
   JDK 25, everything committed. Behind? Use the Module 5 row of
   [Reset your workspace to a stage](../solutions/README.md).
-- Branch `workshop`; the `stage-0` tag message records `Tests run: 13`.
+- Branch `workshop`; the `stage-0` tag message records `Tests run: 14`.
 - `sample-app/` is **trusted**, and JDK 25 is active in your terminal.
 - **Hooks at the start:** `verify-after-spec-task` **on**, `jakarta-import-guard` **on**.
 
@@ -68,7 +68,7 @@ Check it against the steering files and the jakarta-namespace-migration skill.
 Use the table format from your instructions and finish with the one-line verdict.
 ```
 
-It should run `mvn -B verify` without asking and return a findings table, `Tests run: 13…` and a
+It should run `mvn -B verify` without asking and return a findings table, `Tests run: 14…` and a
 verdict.
 
 **Verify:** `git status --short` prints nothing (otherwise `git diff`, then `git restore <file>`).
@@ -112,7 +112,7 @@ Example review (yours will differ):
 |------------|----------------------------|------------------------------------------------------|---------------------------------------|
 | should-fix | pom.xml:57                 | Dependency pins a version the Boot parent manages     | Remove <version>, let the BOM manage it |
 | nit        | UserController.java:24     | Field injection left in one place                     | Use constructor injection             |
-Tests run: 13, Failures: 0, Errors: 0, Skipped: 0 (stage-0 sources: 13 @Test methods)
+Tests run: 14, Failures: 0, Errors: 0, Skipped: 0 (stage-0 sources: 14 @Test methods)
 Verdict: ready to commit
 ```
 
@@ -275,6 +275,11 @@ How the pieces work:
 - The timeout defaults to 60 seconds. A text check needs far less.
 - Writes to `.kiro/hooks/` prompt even when an allow rule matches.
 
+Verified in the 2026-10-10 dry run (Amazon Linux 2023, the reference command run as a plain shell
+command, outside Kiro): exit 2 for `mvn clean deploy`, `mvn wildfly:deploy`, `git push origin main`,
+`git -C sample-app push` and `echo mvn deploy`; exit 0 for `mvn -B clean verify`, `mkdir -p deploy/zos`
+and `cat .kiro/steering/deploy-container.md`. That proves the pattern, not how Kiro runs the hook.
+
 > Verify: the docs don't say which shell Kiro uses to run hook commands. `sh -c` in the terminal test
 > is a close approximation; the in-IDE test is the one that counts.
 
@@ -317,7 +322,7 @@ Docs: [Hooks](https://kiro.dev/docs/hooks/) · [Hook triggers](https://kiro.dev/
 (SHALL) and **Unchanged Behavior** (SHALL CONTINUE TO, the regression requirements).
 
 **What the instructor shows:** the CSRF exemption in `SecurityConfig.java` narrowed from `/api/**` to
-`/api/public/**` on a throwaway branch, so one web test gets 403 instead of 400. With
+`/api/public/**` on a throwaway branch, so the two POST web tests get 403 instead of 400 and 201. With
 `verify-after-spec-task` paused (the build is red on purpose until the fix), a Bug Fix spec lists the
 unchanged behavior and the root cause. The right fix restores `/api/**`; it doesn't edit the test or
 switch CSRF off. Then the hook is re-enabled.
@@ -330,7 +335,7 @@ switch CSRF off. Then the hook is re-enabled.
 
 ### Exercise 5.4 — Prove stage 3 and tag `stage-3-final`
 
-**Goal:** repeatable proof that stage 3 builds on JDK 25, keeps its 13 tests, and holds no secrets.
+**Goal:** repeatable proof that stage 3 builds on JDK 25, keeps its 14 tests, and holds no secrets.
 
 **Steps and Verify**
 
@@ -343,7 +348,7 @@ switch CSRF off. Then the hook is re-enabled.
    grep -E '^\[(INFO|WARNING|ERROR)\] Tests run:' build.log | tail -1
    ```
 
-   Expect `Java version: 25…`, `BUILD SUCCESS` and `Tests run: 13, Failures: 0, Errors: 0` (read your
+   Expect `Java version: 25…`, `BUILD SUCCESS` and `Tests run: 14, Failures: 0, Errors: 0` (read your
    own number).
 
 2. Compare with stage 0:
@@ -354,7 +359,7 @@ switch CSRF off. Then the hook is re-enabled.
    git grep -c '@Test' HEAD -- src/test | awk -F: '{s+=$NF} END {print "HEAD    @Test methods:", s}'
    ```
 
-   Expect `Tests run: 13` in the tag message and 13 `@Test` methods at both revisions.
+   Expect `Tests run: 14` in the tag message and 14 `@Test` methods at both revisions.
 
 3. Scan the code and build files for secrets:
 
@@ -371,11 +376,11 @@ switch CSRF off. Then the hook is re-enabled.
 
    ```bash
    git status --short
-   git tag -a stage-3-final -m "Stage 3 verified: Java 25, Spring Boot 4.1.1, Tests run: 13, reviewed, secret scan clean"
+   git tag -a stage-3-final -m "Stage 3 verified: Java 25, Spring Boot 4.1.1, Tests run: 14, reviewed, secret scan clean"
    git tag --list 'stage-*'
    ```
 
-   If your build showed a number other than 13, find out why before you tag.
+   If your build showed a number other than 14, find out why before you tag.
 
 **Checkpoint:** tag `stage-3-final` exists; `git status --short` prints nothing.
 
@@ -384,7 +389,7 @@ switch CSRF off. Then the hook is re-enabled.
 - `*.log` files are git-ignored in this repository, so `build.log` stays untracked.
 - Module 1 recorded the baseline in the `stage-0` tag message. The runtime number is the authority;
   the static count of `@Test` methods is a second check that doesn't depend on notes. At stage 0 the
-  sample app's test sources contain 13 `@Test` methods.
+  sample app's test sources contain 14 `@Test` methods.
 - Fewer tests usually means a JUnit 4 class was left without an engine, or a test was dropped. The
   `test-rules` steering forbids both.
 - The placeholders you should see include `@Value("${app.security.admin.password:}")` in
@@ -437,8 +442,8 @@ test) and a `tasks.md`.
    mvn -B clean verify
    ```
 
-   `invalidUserIsRejectedByBeanValidation` fails: it expects 400 and gets 403, because the POST now
-   needs a CSRF token. The other 12 tests pass.
+   `invalidUserIsRejectedByBeanValidation` (expects 400) and `validUserIsCreated` (expects 201) fail
+   with 403, because a POST now needs a CSRF token. The other 12 tests pass.
 
 5. Start a Bugfix spec. On the **Let's build** screen of a new session, choose **Bug Fix**. In an
    existing session, pick **Bug Fix** from the agent selector, or use `/bug-fix`.
@@ -447,7 +452,8 @@ test) and a `tasks.md`.
 
 ```text
 #terminal Authenticated API calls broke after a security config cleanup: mvn -B clean verify fails in
-invalidUserIsRejectedByBeanValidation, which now gets 403 Forbidden instead of 400 Bad Request.
+invalidUserIsRejectedByBeanValidation and validUserIsCreated, which now get 403 Forbidden instead of
+400 Bad Request and 201 Created.
 Expected: authenticated clients of the stateless HTTP Basic API can POST /api/users without a CSRF token,
 as at stage 3; invalid input is rejected with 400 before UserService.createUser is called.
 Must not change: unauthenticated requests still get 401, /api/public/** stays public, CSRF protection
@@ -504,7 +510,7 @@ ls .kiro/specs/
 Expect:
 
 - The exemption is `/api/**` again.
-- `Failures: 0, Errors: 0`, and a count of at least 13. It may be higher if the regression-test
+- `Failures: 0, Errors: 0`, and a count of at least 14. It may be higher if the regression-test
   tasks ran.
 - A new spec folder containing `bugfix.md`, `design.md` and `tasks.md`.
 
@@ -553,7 +559,7 @@ The lab can also start from a dependency regression. It shows the Module 2 trap 
   with the existing test, catch it. The right fix restores `spring-boot-starter-validation` without a
   `<version>`.
 - **Verify:** `grep -n -A2 "spring-boot-starter-validation" pom.xml` shows the starter with no
-  `<version>` line, and the build passes with at least 13 tests.
+  `<version>` line, and the build passes with at least 14 tests.
 
 </details>
 
@@ -564,7 +570,7 @@ The lab can also start from a dependency regression. It shows the Module 2 trap 
 - [ ] The reviewer and a tests-only sub-agent reviewed the migration; `git status` stayed clean.
 - [ ] `block-deploy-and-push.json` is committed and passed the terminal and Kiro tests.
 - [ ] You can name the three sections of `bugfix.md`.
-- [ ] `mvn -B clean verify` passes on JDK 25 with 13 tests; the secret scan found only placeholders.
+- [ ] `mvn -B clean verify` passes on JDK 25 with 14 tests; the secret scan found only placeholders.
 - [ ] Tag `stage-3-final` created; both workspace hooks are on.
 
 ## Troubleshooting
@@ -574,7 +580,7 @@ The lab can also start from a dependency regression. It shows the Module 2 trap 
 | `migration-reviewer` is missing | Workspace untrusted, repo root opened, or invalid front matter | Trust and open `sample-app/`; check the YAML; new session |
 | Random compile or Surefire errors | Two Maven builds overlapping in `target/` | Wait, then rerun `mvn -B clean verify` |
 | The hook doesn't block, or blocks too much | Exit 1, a crash, or a broader pattern | Copy the reference file; rerun the terminal test |
-| Fewer than 13 tests | A JUnit 4 class without an engine, or a deleted test | Migrate to JUnit Jupiter; restore deleted tests |
+| Fewer than 14 tests | A JUnit 4 class without an engine, or a deleted test | Migrate to JUnit Jupiter; restore deleted tests |
 
 <details><summary>Background: more troubleshooting</summary>
 

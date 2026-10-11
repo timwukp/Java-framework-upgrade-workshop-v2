@@ -13,8 +13,8 @@ and the test count tells you whether it worked.
 
 ## Prerequisites
 
-- Module 2 is complete: tag `stage-1`, Boot 2.7.18 on Java 21, **Tests run: 13** (9 service + 4
-  web). Every check expects 13; read your own number each time.
+- Module 2 is complete: tag `stage-1`, Boot 2.7.18 on Java 21, **Tests run: 14** (9 service + 5
+  web). Every check expects 14; read your own number each time.
 - Behind? Use the one reset procedure,
   [solutions/README.md → Reset your workspace to a stage](../solutions/README.md#reset-your-workspace-to-a-stage-the-one-procedure-all-modules-use),
   row **Module 3**, from `sample-app/`.
@@ -72,12 +72,12 @@ reference skill in Exercise 5.1, and skip the reference diff in Exercise 6.2.
 
 | After | `mvn -B -q clean compile` | Tests run | `verify-after-spec-task` | `jakarta-import-guard` |
 |---|---|---|---|---|
-| Start | passes | 13 | on | off |
-| Part 1 | passes | 13 | on | **on** |
+| Start | passes | 14 | on | off |
+| Part 1 | passes | 14 | on | **on** |
 | Part 2 | **fails** in 4 files | — | **paused** (Ex 2.1) | on |
 | Part 3 | **fails** in `SecurityConfig.java` only | — | paused | on |
-| Part 4 | passes | 13 (JUnit 4 on Vintage) | **on again** (Ex 4.3, step 6) | on |
-| Parts 5–6 | passes | 13 (JUnit Jupiter only) | on | on |
+| Part 4 | passes | 14 (JUnit 4 on Vintage) | **on again** (Ex 4.3, step 6) | on |
+| Parts 5–6 | passes | 14 (JUnit Jupiter only) | on | on |
 
 Boot 3 has no `javax.*` APIs and no `WebSecurityConfigurerAdapter`, hence the red parts; the paused
 hook doesn't feed those expected errors to the agent.
@@ -100,7 +100,7 @@ mvn -B clean verify | grep -E "Tests run:|BUILD" | tail -n 2
 ```
 
 **Verify:** clean tree, tags `stage-0` and `stage-1`, `Java version: 21…`, `BUILD SUCCESS`,
-`Tests run: 13, Failures: 0, Errors: 0, Skipped: 0`. Not Java 21? Make JDK 21 active in a terminal
+`Tests run: 14, Failures: 0, Errors: 0, Skipped: 0`. Not Java 21? Make JDK 21 active in a terminal
 ([setup](../docs/participant-setup.md#switch-the-jdk-per-terminal)), quit Kiro, and restart it there
 with `kiro .`, so the agent and hooks use it too.
 
@@ -145,6 +145,10 @@ instead of matching every `javax.`:
   and the JDK's `javax.transaction.xa` does not.
 
 It's the same list as in the jakarta skill and `migration-standards.md`.
+
+Verified in the 2026-10-10 dry run (the command run as a plain shell command on Linux): it exits 1 on
+a file with `javax.persistence` imports and 0 on the same file with `jakarta` ones. That run didn't
+cover whether and when Kiro fires the hook.
 
 Docs: [Hooks](https://kiro.dev/docs/hooks/) · [Hook types](https://kiro.dev/docs/hooks/types/) ·
 [Hook actions](https://kiro.dev/docs/hooks/actions/) ·
@@ -255,8 +259,8 @@ Docs: [Quick Spec](https://kiro.dev/docs/specs/quick-spec/) · [Specs](https://k
 **Ask Kiro**
 
 ```text
-#migration-playbook Create a spec named spring-boot-3-upgrade for stage 2: Spring Boot 2.7.18 to 3.5.16 on Java 21 (Jakarta EE 10), following the playbook's stage 2 items and migration-standards. Write the requirements in EARS form and include: mvn -B clean verify passes on JDK 21; Tests run stays 13; no Jakarta EE API is imported from javax.*; security behaviour is unchanged (401 for unauthenticated requests to /api/users, CSRF ignored only for /api/**, BCrypt passwords, no hard-coded passwords). Create exactly these tasks, one concern each, in this order:
-1. pom.xml only: set the spring-boot-starter-parent version to 3.5.16; remove the byte-buddy.version override and its comment (3.5.16 manages Byte Buddy itself); add org.springframework.boot:spring-boot-properties-migrator with runtime scope and a comment saying it is temporary; update the parent comment and the description element for stage 2, and drop pom.xml comments that only explain stage-1 changes. The code is expected not to compile after this task (javax.* imports, WebSecurityConfigurerAdapter). Do not change any Java file in this task.
+#migration-playbook Create a spec named spring-boot-3-upgrade for stage 2: Spring Boot 2.7.18 to 3.5.16 on Java 21 (Jakarta EE 10), following the playbook's stage 2 items and migration-standards. Write the requirements in EARS form and include: mvn -B clean verify passes on JDK 21; Tests run stays 14; no Jakarta EE API is imported from javax.*; security behaviour is unchanged (401 for unauthenticated requests to /api/users, CSRF ignored only for /api/**, BCrypt passwords, no hard-coded passwords). Create exactly these tasks, one concern each, in this order:
+1. pom.xml only: set the spring-boot-starter-parent version to 3.5.16; if there is a byte-buddy.version override, remove it and its comment (3.5.16 manages Byte Buddy itself); add org.springframework.boot:spring-boot-properties-migrator with runtime scope and a comment saying it is temporary; update the parent comment and the description element for stage 2, and drop pom.xml comments that only explain stage-1 changes. The code is expected not to compile after this task (javax.* imports, WebSecurityConfigurerAdapter). Do not change any Java file in this task.
 2. javax.* to jakarta.* using the jakarta-namespace-migration skill, without touching SecurityConfig.java.
 3. SecurityConfig to a SecurityFilterChain bean with the lambda DSL using the spring-security-lambda-dsl skill; the web-layer tests keep their assertions.
 4. Rename the configuration keys that spring-boot-properties-migrator reports at startup.
@@ -304,7 +308,7 @@ git commit -m "Module 3: stage 2 spec (Quick Spec)"
 </dependency>
 ```
 
-Accept: parent `3.5.16`, the `byte-buddy.version` property and its comment gone, the migrator added,
+Accept: parent `3.5.16`, any `byte-buddy.version` override and its comment gone, the migrator added,
 the parent comment and `<description>` updated, stage-1-only comments removed.
 
 </details>
@@ -319,8 +323,8 @@ mvn -B -q clean compile | grep -oE "[A-Za-z]+\.java" | sort -u
 
 Look for:
 
-- Parent `3.5.16`, the migrator, no `byte-buddy` line: Module 2 added the 1.17.8 override (as the
-  stage-1 reference does), and 3.5.16 manages that version itself (`pom-rules.md`).
+- Parent `3.5.16`, the migrator, no `byte-buddy` line: the stage-1 reference has no override, and
+  if you added one in Module 2, 3.5.16 now manages that version itself (`pom-rules.md`).
 - `spring-core` 6.2.19, `spring-security-core` 6.5.11, `hibernate-core` 6.6.53.Final (new group
   `org.hibernate.orm`), `byte-buddy` 1.17.8. (No `-q` on `dependency:tree`: it prints at INFO.)
 - Errors in `User.java`, `UserController.java`, `RequestIdFilter.java`, `SecurityConfig.java`: your
@@ -329,8 +333,9 @@ Look for:
 <details><summary>Background: notes on these checks</summary>
 
 - Clicking the task item moves its status to in progress, then done.
-- 1.17.8 is the Byte Buddy version the stage-1 reference override pinned; the parent now manages it,
-  so the pin has no reason left (`pom-rules.md`).
+- 1.17.8 is also the version Module 2's fallback override pins (only if an error named Byte Buddy);
+  the parent now manages it, so such a pin has no reason left (`pom-rules.md`). The 2026-10-10 dry
+  run needed no override at stage 1 (Corretto 21).
 - `dependency:tree` doesn't need the code to compile. Don't add `-q` to it: the tree is printed at
   INFO level, which `-q` hides.
 - The compile errors in `User.java`, `UserController.java` and `RequestIdFilter.java` come from
@@ -383,6 +388,8 @@ Two things to remember:
   in services where nobody planted the trap.
 - **The migrator only knows Spring Boot's own keys.** `spring.jpa.properties.hibernate.dialect` is
   passed straight through to Hibernate, so the migrator won't mention it. Part 6 handles it.
+- **Reported doesn't mean migrated.** Predict, too, whether the migrator will map this key to its
+  replacement at runtime. Exercise 4.3 shows the answer.
 
 **Checkpoint:** nothing changed.
 
@@ -714,8 +721,9 @@ git commit -m "Stage 2, task 3: SecurityFilterChain and lambda DSL"
    mvn -B clean verify | grep -E "Tests run:|expected" | tail -n 6
    ```
 
-2. **Likely (verify in your run):** `invalidUserIsRejectedByBeanValidation` fails with
-   `Status expected:<400> but was:<403>`. Ask Kiro for the root cause before any fix.
+2. `invalidUserIsRejectedByBeanValidation` fails with `Status expected:<400> but was:<403>`
+   (verified in the 2026-10-10 dry run, Corretto 21). Expect the other POST test,
+   `validUserIsCreated`, to fail the same way (`<201>`, got `<403>`). Ask Kiro for the root cause first.
 
 **Ask Kiro**
 
@@ -725,7 +733,7 @@ git commit -m "Stage 2, task 3: SecurityFilterChain and lambda DSL"
 
 **What's going on.** `@WebMvcTest` loads beans that *implement* `WebSecurityConfigurer` or
 `SecurityFilterChain`. The old adapter class did; the new class only declares a bean, so the test gets
-Boot's default security, which refuses the token-less POST (403). Fix: `@Import(SecurityConfig.class)`.
+Boot's default security, which refuses token-less POSTs (403). Fix: `@Import(SecurityConfig.class)`.
 
 <details><summary>Background: the @WebMvcTest javadoc, verbatim</summary>
 
@@ -747,15 +755,17 @@ says "component scanning is limited to beans annotated with:" `@Controller`, `@C
 The javadoc also names the fix: "Typically @WebMvcTest is used in combination with @MockitoBean or
 @Import to create any collaborators required by your @Controller beans."
 
-If your run stayed green: without the import, `unauthenticatedRequestIsRejected` passes against Spring
-Boot's default security too, so a green web test proves nothing about your rules. The skill's section
-4 describes the same trap.
+Note that without the import, `unauthenticatedRequestIsRejected` passes against Spring Boot's default
+security too, so a green web test alone proves nothing about your rules. The skill's section 4
+describes the same trap.
 
-Example of the failing run (yours will differ):
+The failing run. The first line is from the 2026-10-10 dry run (Corretto 21). That run predates
+`validUserIsCreated`, so the second line and the totals are the expected result with 14 tests:
 
 ```text
 [ERROR]   UserControllerTest.invalidUserIsRejectedByBeanValidation:... Status expected:<400> but was:<403>
-[ERROR] Tests run: 13, Failures: 1, Errors: 0, Skipped: 0
+[ERROR]   UserControllerTest.validUserIsCreated:... Status expected:<201> but was:<403>
+[ERROR] Tests run: 14, Failures: 2, Errors: 0, Skipped: 0
 ```
 
 Docs: [Chat: context providers (`#terminal`)](https://kiro.dev/docs/ide/chat/) ·
@@ -766,9 +776,6 @@ Docs: [Chat: context providers (`#terminal`)](https://kiro.dev/docs/ide/chat/) �
 3. If Kiro proposes `@Import(SecurityConfig.class)`, reply
    `Go ahead. Do not run Maven; I run the tests myself.` Accept only the import and the annotation.
 
-**Stayed green?** Add the import anyway; without it the web tests prove nothing about your rules
-(the skill's section 4).
-
 **Verify**
 
 ```bash
@@ -778,7 +785,7 @@ mvn -B clean verify | grep "Tests run:" | tail -n 1
 ```
 
 Look for: the `@Import`, only `UserControllerTest.java` changed (no assertion), and
-`Tests run: 13, Failures: 0, Errors: 0, Skipped: 0`.
+`Tests run: 14, Failures: 0, Errors: 0, Skipped: 0`.
 
 **Checkpoint**
 
@@ -804,12 +811,14 @@ hook.
    migrator report and the admin password (or use your `APP_ADMIN_PASSWORD`):
 
    ```bash
-   grep -n -B3 -A3 "max-http-header-size" target/run.log
+   grep -n -B4 -A3 "max-http-header-size" target/run.log
    grep "Generated password for this run" target/run.log
    ```
 
-   Look for: a migrator warning naming `server.max-http-header-size` and its replacement
-   `server.max-http-request-header-size`. Copy those lines; note any `hibernate.dialect` warning.
+   Look for: an **ERROR** from `PropertiesMigrationListener` about keys "no longer supported", with
+   `Key: server.max-http-header-size` and a `Reason` naming `server.max-http-request-header-size`
+   (as in the 2026-10-10 dry run). The app still starts. Copy those lines; note any
+   `hibernate.dialect` warning.
 
 3. Check the behaviour:
 
@@ -822,14 +831,15 @@ hook.
    ```
 
    Expect `401` (no credentials), `200` (admin: the BCrypt password fallback works), `400` (invalid
-   POST without a CSRF token: CSRF still ignored for `/api/**`), `404` (trailing slash; Part 6).
+   POST without a CSRF token: CSRF still ignored for `/api/**`), `404` (trailing slash; Part 6). The
+   2026-10-10 dry run got exactly these on stage 2; the trailing slash still gave 200 on stage 1.
 
 4. Stop the app with **Ctrl+C**, then send the prompt with your copied lines in place of `<paste>`.
 
 **Ask Kiro**
 
 ```text
-#spec:spring-boot-3-upgrade Implement task 4. Here is the spring-boot-properties-migrator report from startup: <paste>. Rename each reported key in src/main/resources/application*.properties to its replacement, keep the values, and update the comment above each key. Change nothing else, and do not run Maven.
+#spec:spring-boot-3-upgrade Implement task 4. Here is the spring-boot-properties-migrator report from startup: <paste>. Rename each reported key in src/main/resources/application*.properties to the replacement key named in its Reason line, keep the values, and update the comment above each key. Change nothing else, and do not run Maven.
 ```
 
 5. Accept the hunk if it changes only that key and its comment.
@@ -843,9 +853,13 @@ match the skill's section 3, "Behaviour to re-check".
 
 In the Verify step, comments may still mention the old key name; only the key itself must change.
 
-The migrator maps renamed keys for the current run only. Once you remove it, an old key that Spring
-Boot no longer binds is ignored without an error. That's why you rename now instead of relying on the
-migrator.
+The 4.0 guide says the migrator can "temporarily migrate properties at runtime", but not this key.
+Verified in the 2026-10-10 dry run (Boot 3.5.16): it goes into the ERROR report of keys that are "no
+longer supported", with the reason "Replacement key 'server.max-http-request-header-size' uses an
+incompatible target type". The old key is not mapped, so your 16KB value has no effect until you
+rename the key yourself. Keys the migrator can map are reported separately, as a warning, and even
+those only for the current run: once you remove the migrator, an old key that Spring Boot no longer
+binds is ignored without any message. So rename every reported key now.
 
 Docs: [Hooks: managing](https://kiro.dev/docs/hooks/management/) ·
 [Specs best practices (`#spec`)](https://kiro.dev/docs/specs/best-practices/)
@@ -894,7 +908,7 @@ file, it costs almost no context until it's needed: only its name and descriptio
 
 **The count is the proof.** With `junit-vintage-engine` present, JUnit 4 and Jupiter tests both run.
 Only after you remove it and `junit:junit` does a missed class fail to compile; the total must still be
-13. The verify hook passes whenever the build passes; only the count shows a drop.
+14. The verify hook passes whenever the build passes; only the count shows a drop.
 
 ### Exercise 5.1: Write the skill (10 minutes)
 
@@ -1004,7 +1018,7 @@ git commit -m "Module 3: add junit4-to-jupiter skill"
 
 ### Exercise 5.3: Migrate both test classes with your skill (8 minutes)
 
-**Goal:** JUnit Jupiter only, JUnit 4 gone from the build, `Tests run: 13`.
+**Goal:** JUnit Jupiter only, JUnit 4 gone from the build, `Tests run: 14`.
 
 **Steps**
 
@@ -1017,7 +1031,7 @@ git commit -m "Module 3: add junit4-to-jupiter skill"
 **Ask Kiro**
 
 ```text
-/junit4-to-jupiter #spec:spring-boot-3-upgrade Implement the first half of task 5: migrate both test classes in src/test/java to JUnit Jupiter, following the skill one class at a time. The baseline is Tests run: 13 (tag stage-1); use it instead of building it again, and report each class's test count from the skill's per-class runs. Keep every test scenario and assertion. Keep @MockBean, @WithMockUser and @Import(SecurityConfig.class) exactly as they are. Do not edit pom.xml or production code yet.
+/junit4-to-jupiter #spec:spring-boot-3-upgrade Implement the first half of task 5: migrate both test classes in src/test/java to JUnit Jupiter, following the skill one class at a time. The baseline is Tests run: 14 (tag stage-1); use it instead of building it again, and report each class's test count from the skill's per-class runs. Keep every test scenario and assertion. Keep @MockBean, @WithMockUser and @Import(SecurityConfig.class) exactly as they are. Do not edit pom.xml or production code yet.
 ```
 
 ```text
@@ -1047,16 +1061,16 @@ grep -rc "@Test" src/test/java
 mvn -B clean verify | grep "Tests run:" | tail -n 1
 ```
 
-Look for: no output from the first three commands, `@Test` counts 4 and 9, and
-`Tests run: 13, Failures: 0, Errors: 0, Skipped: 0`. Lower? Don't commit; find the missing test with
+Look for: no output from the first three commands, `@Test` counts 5 and 9, and
+`Tests run: 14, Failures: 0, Errors: 0, Skipped: 0`. Lower? Don't commit; find the missing test with
 `git diff stage-1 -- src/test`.
 
 <details><summary>Example output, and a review note (yours will differ)</summary>
 
 ```text
-src/test/java/com/example/usermanagement/controller/UserControllerTest.java:4
+src/test/java/com/example/usermanagement/controller/UserControllerTest.java:5
 src/test/java/com/example/usermanagement/service/UserServiceTest.java:9
-[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0
 ```
 
 The `@Test` counts are the same as at stage 1. In the hunk review, renaming `testCreateUser` to
@@ -1068,7 +1082,7 @@ The `@Test` counts are the same as at stage 1. In the hunk review, renaming `tes
 
 ```bash
 git add -A
-git commit -m "Stage 2, task 5: JUnit Jupiter only (Tests run: 13)"
+git commit -m "Stage 2, task 5: JUnit Jupiter only (Tests run: 14)"
 ```
 
 ### Exercise 5.4: Improve the skill, and take it with you (4 minutes)
@@ -1137,6 +1151,7 @@ The migrator has done its job.
 - **Trailing slashes.** "As of Spring Framework 6.0, the trailing slash matching configuration option
   has been deprecated and its default value set to false." So "\"GET /some/greeting/\" doesn't match
   anymore by default and will result in an HTTP 404 error" (3.0 guide). You saw this in Exercise 4.3.
+  Verified in the 2026-10-10 dry run: `GET /api/users/` returns 200 on stages 0–1 and 404 on stages 2–3.
   The app needs no change; clients that call `/api/users/` must drop the slash. The guide shows a
   temporary `configurer.setUseTrailingSlashMatch(true)` in a `WebMvcConfigurer`, but the option itself
   is deprecated, so don't build on it.
@@ -1165,7 +1180,7 @@ grep -n "ProblemDetail" src/main/java/com/example/usermanagement/controller/ApiE
 mvn -B clean verify | grep "Tests run:" | tail -n 1
 ```
 
-Look for: no output from the first two commands, `ProblemDetail` in the handler, `Tests run: 13`
+Look for: no output from the first two commands, `ProblemDetail` in the handler, `Tests run: 14`
 with no failures.
 
 **Checkpoint:** commit together with Exercise 6.2.
@@ -1194,7 +1209,7 @@ with no failures.
    ```bash
    git add -A
    git commit -m "Stage 2 complete: Spring Boot 3.5.16, Jakarta EE 10, JUnit Jupiter"
-   git tag -a stage-2 -m "Stage 2: Java 21, Spring Boot 3.5.16, Tests run: 13"
+   git tag -a stage-2 -m "Stage 2: Java 21, Spring Boot 3.5.16, Tests run: 14"
    git show stage-2 --no-patch
    ```
 
@@ -1248,7 +1263,8 @@ files, but it can run shell commands; run `git status` after the review.
 - [ ] You watched the guard report a leftover `javax.validation` import back to the agent.
 - [ ] A Quick Spec for stage 2 is committed under `.kiro/specs/`, and **Sync Files** marked the
       finished tasks.
-- [ ] The parent is `3.5.16`; the Byte Buddy override and `spring-boot-properties-migrator` are gone.
+- [ ] The parent is `3.5.16`; no `byte-buddy.version` override (removed if you added one in Module 2)
+      and no `spring-boot-properties-migrator`.
 - [ ] The guard regex finds no Jakarta EE `javax.*` import in `src/`, and no JDK package was
       renamed.
 - [ ] `SecurityConfig` is a plain `@Configuration` class with a `SecurityFilterChain` bean (lambda DSL)
@@ -1256,14 +1272,15 @@ files, but it can run shell commands; run `git status` after the review.
 - [ ] `UserControllerTest` has `@Import(SecurityConfig.class)`, and you can explain why.
 - [ ] On the running app: 401 without credentials, 200 as admin, 400 for an invalid POST, 404 with a
       trailing slash.
-- [ ] `server.max-http-request-header-size` replaces the old key, found by the migrator.
+- [ ] `server.max-http-request-header-size` replaces the old key: the migrator's ERROR report found
+      it, and you renamed it (the migrator doesn't map it).
 - [ ] `.kiro/skills/junit4-to-jupiter/SKILL.md` exists with valid front matter and is listed under `/`.
 - [ ] The tests are JUnit Jupiter only; `junit-vintage-engine` and `junit:junit` are gone; Tests run is
-      still 13.
+      still 14.
 - [ ] No `hibernate.dialect` properties; `ApiExceptionHandler` returns `ProblemDetail`; deprecations
       recorded in `MIGRATION-NOTES.md`.
 - [ ] Both hooks are enabled: `verify-after-spec-task` and `jakarta-import-guard`.
-- [ ] Tag `stage-2` exists and its message records `Tests run: 13`.
+- [ ] Tag `stage-2` exists and its message records `Tests run: 14`.
 
 </details>
 
@@ -1284,16 +1301,18 @@ files, but it can run shell commands; run `git status` after the review.
 | The agent edited `SecurityConfig.java` in Part 3 | The security skill's description matched the compile errors | `git restore` that file and repeat with the boundary from the prompt. |
 | Compile errors in files other than `SecurityConfig.java` after Part 3 | A missed import, or a JDK package renamed (for example `jakarta.sql`) | Rerun the skill's search step; JDK packages go back to `javax`. |
 | Text typed after `/skill-name` seems ignored | Your build handles a skill slash command on its own | Send `/skill-name` alone first, then the prompt as the next message. |
-| `invalidUserIsRejectedByBeanValidation` returns 403 instead of 400 | `@WebMvcTest` doesn't scan the plain `@Configuration` class, so default security (CSRF on) applies | Add `@Import(SecurityConfig.class)` to `UserControllerTest` (Exercise 4.2). |
+| `invalidUserIsRejectedByBeanValidation` gets 403 instead of 400 (and `validUserIsCreated` 403 instead of 201) | `@WebMvcTest` doesn't scan the plain `@Configuration` class, so default security (CSRF on) applies | Add `@Import(SecurityConfig.class)` to `UserControllerTest` (Exercise 4.2). |
 | All web tests pass without `@Import` | They pass against Spring Boot's default security too | Add the import anyway, so the tests exercise your rules. |
 | `mvn spring-boot:run` fails with "Port 8080 was already in use" | Another app, or an earlier run, is still running | Stop it (Ctrl+C in its terminal) and start again. |
 | No migrator report in `target/run.log` | The dependency is missing or not `runtime` scope, or you renamed the key already | Check `pom.xml`; the report appears only while an old key is present. |
+| An ERROR from `PropertiesMigrationListener` at startup, yet the app runs | Expected: it lists keys that are no longer supported, such as `server.max-http-header-size`, and doesn't map them | Rename the key yourself (Exercise 4.3, task 4). |
 | The invalid `POST` returns 401 on the running app | The error dispatch is denied (Spring Security 6 authorizes every dispatch type) | Review the rules with the skill's section 3; don't open `/error` to everyone without understanding why. |
 | `curl …/api/users/` returns 404 | Trailing-slash matching is off by default since Spring Framework 6.0 | Expected. Fix the client, not the server. |
 | `/junit4-to-jupiter` isn't in the `/` menu | Folder name and `name` differ, front matter not on line 1, or invalid characters | Fix the front matter; reload the window if it still doesn't appear. |
 | "package org.junit does not exist" after removing JUnit 4 | A class still uses JUnit 4 | Rerun the skill on that class. |
+| "Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK…" in the build output | Mockito 5, managed by 3.5.16, attaches itself at runtime on JDK 21+ | Expected noise, not a failure (seen in the 2026-10-10 dry run on stages 2 and 3). |
 | `UnnecessaryStubbingException` after the migration | `MockitoExtension` uses strict stubs | Remove or correct the unused stub; don't make the class lenient. |
-| Tests run is lower than 13 | A test was dropped or lost its `@Test` | `git diff stage-1 -- src/test`, restore the test, and don't commit until the count matches. The verify hook still passes in this case; only the count shows it. |
+| Tests run is lower than 14 | A test was dropped or lost its `@Test` | `git diff stage-1 -- src/test`, restore the test, and don't commit until the count matches. The verify hook still passes in this case; only the count shows it. |
 | No deprecation warnings listed | Incremental compile skipped the classes | Keep `clean` in the command (Exercise 6.2). |
 | Module 4 starts with the verify hook off | Exercise 4.3, step 6 was skipped | Turn `verify-after-spec-task` on with the eye icon (Exercise 6.2, step 5). |
 

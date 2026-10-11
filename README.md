@@ -17,13 +17,14 @@ A one-day, hands-on workshop: take a legacy **Java 8 + Spring Boot 2.2** service
 - Package repeatable know-how as **skills** and a **power**, and use a **custom agent** as a reviewer.
   It has no `write` tool and is instructed not to modify files; you still check `git status` after a review.
 - Spot the migration traps that don't break the build and only show up later: validation that
-  silently stops, tests that silently stop running, security rules that change meaning.
+  silently stops, tests that silently stop running, security rules that change meaning, and a
+  Jackson 3 change that rejects valid create requests.
 
 ## The staged path
 
 | Stage | Module | Java | Spring Boot | Spring Framework | Why this stop |
 |---|---|---|---|---|---|
-| 0 | 1 | 8 | 2.2.4 | 5.2.3 | Baseline. Boot 2.2.4 is documented as compatible up to Java 13 (the last 2.2 patch, 2.2.13, up to Java 15); never Java 21. |
+| 0 | 1 | 8 | 2.2.4 | 5.2.3 | Baseline. Boot 2.2.4 is documented as compatible up to Java 13 (the last 2.2 patch, 2.2.13, up to Java 15); never Java 21: on JDK 21 the build fails with Lombok 1.18.10's `IllegalAccessError`. |
 | 1 | 2 | 21 | 2.7.18 | 5.3.x | Last 2.x line; still `javax.*`; runs on Java 21. |
 | 2 | 3 | 21 | 3.5.x | 6.2.x | Jakarta EE namespace, Spring Security 6. A waypoint: OSS support ended 2026-06-30. |
 | 3 | 4 | 25 | 4.1.x | 7.0.x | Target. Jakarta EE 11, Jackson 3, Spring Security 7, Java 25 LTS. |
@@ -53,7 +54,7 @@ On macOS or Linux, in a terminal where JDK 8 is active (see [participant-setup.m
 ```bash
 git clone <this-repository-url>
 cd <repository>/sample-app
-mvn -B clean verify    # expect Tests run: 13 and BUILD SUCCESS
+mvn -B clean verify    # expect Tests run: 14 and BUILD SUCCESS
 kiro .                 # opens sample-app/ as the Kiro workspace, with this terminal's JDK
 ```
 
@@ -71,6 +72,7 @@ docs/
   instructor-guide.md        Dry run, run of show, room control, troubleshooting
   quick-reference.md         Kiro and migration cheat sheet
   kiro-feature-reference.md  Every Kiro feature used, with its docs link
+  verification-log.md        What the dry runs verified, and what is still unverified
 modules/
   01-setup-and-assessment.md
   02-runway-boot27-java21.md

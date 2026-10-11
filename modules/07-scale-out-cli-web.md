@@ -379,6 +379,10 @@ under `.kiro/`; and three hook files, including `block-deploy-and-push.json`, un
   match by tool category only from **Kiro CLI 2.28.0**, so the hook applies here on 2.28.0 or later
   (check with `kiro-cli --version`). It matters little in this run, because `--trust-tools=read,grep`
   already denies shell commands. A blocking hook is final.
+- The hook commands themselves were verified in the 2026-10-10 dry run as plain shell commands on
+  Linux, outside Kiro: the verify hook exits 0 with `Tests run: …` and `BUILD SUCCESS` on stdout, or 1
+  with the last 80 lines on stderr; `block-deploy-and-push` exits 2 for deploy goals and `git push`
+  and 0 otherwise. Whether `kiro-cli` runs them the same way is still unverified.
 - For clean CI logs, set `KIRO_LOG_NO_COLOR=1`.
 
 > Verify: the authentication page says an active `kiro-cli login` session takes precedence over
@@ -413,7 +417,7 @@ Expect a Markdown report with the five sections and exit code 0.
 
 ```markdown
 # Migration readiness
-1. Build: BUILD SUCCESS — Tests run: 13, Failures: 0, Errors: 0, Skipped: 0
+1. Build: BUILD SUCCESS — Tests run: 14, Failures: 0, Errors: 0, Skipped: 0
 2. Versions: Java 25, Spring Boot 4.1.x
 3. Namespace: no Jakarta EE APIs imported from javax.*
 4. Risky changes: none found
@@ -623,7 +627,8 @@ pull requests itself and never merges, so you still review everything. Turn it o
 
 > Verify: whether a workspace `PreToolUse` hook interferes with Kiro Web's pull request delivery is
 > undocumented. If you test with the hook on, a delivery that fails with "Blocked by workspace policy"
-> is the hook; if delivery works, record that and turn the hook back on.
+> is the hook; if delivery works, record that and turn the hook back on. The command itself does exit 2
+> on `git push` (verified on Linux in the 2026-10-10 dry run, outside Kiro).
 
 After merging the Exercise 7.7 pull request:
 
@@ -669,7 +674,7 @@ List the steering files, custom agents and hooks you loaded from .kiro/.
 ```
 
 **Verify:** the output shows a Java 25 runtime, Maven, and a green build with the same test count as
-your local run (13). The list usually names `migration-standards` and `migration-reviewer` (the
+your local run (14). The list usually names `migration-standards` and `migration-reviewer` (the
 wording is model-dependent); the disabled `block-deploy-and-push` may be missing or marked disabled.
 
 - If Java 25 or Maven is missing, or dependencies don't download, stop: review the sandbox's

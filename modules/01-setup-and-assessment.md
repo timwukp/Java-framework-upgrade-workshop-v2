@@ -16,7 +16,7 @@ before anything changes. No application code changes in this module.
 
 - [Participant setup](../docs/participant-setup.md) is done on **macOS or Linux** (Windows: use a
   Linux VM or cloud desktop; WSL2 is untested).
-- JDK 8 is active; `mvn -B clean verify` passed with **Tests run: 13** (9 service + 4 web). Always
+- JDK 8 is active; `mvn -B clean verify` passed with **Tests run: 14** (9 service + 5 web). Always
   read your own number.
 - You started Kiro with `kiro .` from that terminal in `sample-app/` and trusted the workspace.
   **After any JDK change, quit Kiro and restart it from that terminal with `kiro .`**
@@ -336,10 +336,10 @@ git switch -c workshop
 mvn -B clean verify | tail -n 30
 ```
 
-Read **Tests run** in your output: expect **13**; if not, stop and ask the instructor. Then tag:
+Read **Tests run** in your output: expect **14**; if not, stop and ask the instructor. Then tag:
 
 ```bash
-git tag -a stage-0 -m "Stage 0: Java 8, Spring Boot 2.2.4, Tests run: 13"
+git tag -a stage-0 -m "Stage 0: Java 8, Spring Boot 2.2.4, Tests run: 14"
 git show stage-0 --no-patch
 ```
 
@@ -401,7 +401,7 @@ and `test-rules` (`fileMatch`), `migration-playbook` (`manual`).
 |---|---|---|
 | `migration-standards.md` | `always` | The four stages and their versions; one stage at a time; never invent versions; only Jakarta EE packages move to `jakarta.*`; a change is done only when `mvn -B clean verify` passes **and the test count did not go down**; no deleting or disabling tests; never two Maven builds at once |
 | `pom-rules.md` | `fileMatch` on `**/pom.xml` | Bump the Boot parent first; remove `<version>` from managed dependencies; set `java.version`; confirm resolved versions with `dependency:tree` |
-| `test-rules.md` | `fileMatch` on `src/test/**/*.java` | Keep every scenario; report Tests run before and after; JUnit Jupiter from stage 2; web tests keep covering auth, validation and `X-Request-Id` |
+| `test-rules.md` | `fileMatch` on `src/test/**/*.java` | Keep every scenario; report Tests run before and after; JUnit Jupiter from stage 2; web tests keep covering auth, validation and `X-Request-Id`, and include a successful create (`validUserIsCreated`) |
 | `migration-playbook.md` | `manual` | The stage-by-stage checklist, each trap with the symptom you'd see if you missed it |
 
 </details>
@@ -588,7 +588,7 @@ grep -rc "@Test" src/test/java
 ```
 
 Look for: JUnit 4, `SpringRunner`, `MockitoJUnitRunner`, `@WebMvcTest`, `@MockBean`; `@Test` counts
-9 + 4 = 13. Expected answer: Spring Boot 2.4 removed the JUnit Vintage engine from
+9 + 5 = 14. Expected answer: Spring Boot 2.4 removed the JUnit Vintage engine from
 `spring-boot-starter-test`, so JUnit 4 tests can silently stop running.
 
 **Ask Kiro (D: pinned versions)** (type `#` and pick `pom.xml`)
@@ -616,7 +616,9 @@ Look for: parent `2.2.4.RELEASE`, `java.version` `1.8`, pins on `javax.persisten
   migration guides.
 - For prompt C, your playbook steering says the same thing about JUnit Vintage, so Kiro may be
   repeating it. The primary source is the Spring Boot 2.4 release notes. The per-file counts are 9 in
-  `UserServiceTest` and 4 in `UserControllerTest`.
+  `UserServiceTest` and 5 in `UserControllerTest`. The fifth web test, `validUserIsCreated`, posts a
+  valid user whose JSON omits `active` and expects 201; it is the one that catches the Jackson 3 trap
+  in Module 4.
 - For prompt D, the key risk Kiro should name is that Lombok 1.18.10 can't run on JDK 16 or later.
 
 </details>
@@ -648,6 +650,11 @@ If Kiro states another range, ask for its source.
   [2.2.13](https://docs.spring.io/spring-boot/docs/2.2.13.RELEASE/reference/html/getting-started.html) ·
   [2.7.18](https://docs.spring.io/spring-boot/docs/2.7.18/reference/html/getting-started.html).
 - Java 21 is outside the 2.2 range either way.
+- Verified in the 2026-10-10 dry run (Corretto 21): this baseline doesn't even compile on JDK 21. The
+  Lombok 1.18.10 pin fails first, with `java.lang.IllegalAccessError: class
+  lombok.javac.apt.LombokProcessor ... cannot access class
+  com.sun.tools.javac.processing.JavacProcessingEnvironment`. The same pin on Boot 2.7 fails the same
+  way, which is why Module 2 removes it.
 - `migration-standards` tells the agent never to invent version numbers, and this is the kind of
   claim that rule exists for.
 
@@ -670,14 +677,14 @@ Plan saves nothing, so switch the **same** session to Default (history comes alo
 **Ask Kiro**
 
 ```text
-Create MIGRATION-NOTES.md in the workspace root from the assessment in this conversation. Use these sections: Baseline (Java, Spring Boot and Spring Framework versions from pom.xml; Tests run: 13, as recorded in the stage-0 tag), javax.* inventory, Spring Security, Tests, Pinned versions, Why not Java 21 yet, Staged path (from migration-standards), Open questions. Keep each item to one line, keep every "unverified" mark, and add file paths where you have them. Do not change any other file.
+Create MIGRATION-NOTES.md in the workspace root from the assessment in this conversation. Use these sections: Baseline (Java, Spring Boot and Spring Framework versions from pom.xml; Tests run: 14, as recorded in the stage-0 tag), javax.* inventory, Spring Security, Tests, Pinned versions, Why not Java 21 yet, Staged path (from migration-standards), Open questions. Keep each item to one line, keep every "unverified" mark, and add file paths where you have them. Do not change any other file.
 ```
 
 <details><summary>Background: example output (yours will differ)</summary>
 
 ```text
 ## Baseline
-- Java 1.8, Spring Boot 2.2.4.RELEASE (Spring Framework 5.2.3), Tests run: 13
+- Java 1.8, Spring Boot 2.2.4.RELEASE (Spring Framework 5.2.3), Tests run: 14
 ## javax.* inventory
 - javax.persistence: entity/User.java -> jakarta.persistence in Spring Boot 3
 ...
@@ -696,7 +703,7 @@ git status --short
 grep -nE "Tests run|unverified" MIGRATION-NOTES.md
 ```
 
-Look for: only `?? MIGRATION-NOTES.md`, and `Tests run: 13`. Fix anything your checks contradicted.
+Look for: only `?? MIGRATION-NOTES.md`, and `Tests run: 14`. Fix anything your checks contradicted.
 
 **Checkpoint**
 
@@ -811,7 +818,7 @@ Look for: a clean tree; two commits after `stage-0` (steering, notes).
 - [ ] Steering, `migration-reviewer` and both skills are visible.
 - [ ] `mvn *` is allowed for **this workspace**, `mvn *deploy*` is denied, and the agent's `mvn -v`
       reports Java 1.8.
-- [ ] Branch `workshop`; tag `stage-0` records `Tests run: 13`.
+- [ ] Branch `workshop`; tag `stage-0` records `Tests run: 14`.
 - [ ] Foundation steering and `MIGRATION-NOTES.md` are reviewed and committed.
 - [ ] You can explain each hook, the reviewer, and why the guard is off.
 
@@ -841,7 +848,7 @@ Look for: a clean tree; two commits after `stage-0` (steering, notes).
 | Hunks were applied without review | Autopilot is still on | Switch to Supervised (Exercise 1.2). |
 | `git switch` is not a git command | Git older than 2.23 | Use `git checkout -b workshop`, and upgrade Git before Module 2. |
 | `#git diff` is empty (more) | The workspace (`sample-app/`) is a subfolder of the git repository. Kiro, like VS Code, may offer to open the repository found in a parent folder | Accept the offer. If you dismissed it, use the fix in the main table and reload the window; the instructor's dry run confirms the exact control. The terminal `git` commands work either way. |
-| The test count in Part 3 isn't 13 | Local edits, wrong JDK, or a changed environment | Run `git status` and `mvn -v`, and ask the instructor before continuing. |
+| The test count in Part 3 isn't 14 | Local edits, wrong JDK, or a changed environment | Run `git status` and `mvn -v`, and ask the instructor before continuing. |
 
 </details>
 

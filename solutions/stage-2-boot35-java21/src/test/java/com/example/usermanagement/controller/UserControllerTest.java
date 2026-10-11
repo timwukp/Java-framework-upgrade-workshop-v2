@@ -79,4 +79,24 @@ class UserControllerTest {
 
         verify(userService, never()).createUser(any(User.class));
     }
+
+    /**
+     * The body omits "active" on purpose, as a real client might. Jackson 3 (Spring Boot 4) fails on a
+     * missing primitive when it binds through a constructor: this test catches that, the others don't.
+     */
+    @Test
+    @WithMockUser
+    void validUserIsCreated() throws Exception {
+        User saved = new User();
+        saved.setId(7L);
+        saved.setName("Jane Doe");
+        saved.setEmail("jane@example.com");
+        when(userService.createUser(any(User.class))).thenReturn(saved);
+
+        mockMvc.perform(post("/api/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Jane Doe\",\"email\":\"jane@example.com\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(7));
+    }
 }
