@@ -158,9 +158,12 @@ def check_runbook(path, text):
     return True
 
 
-def check_exercise_refs(runbook_ids):
+def check_exercise_refs(runbook_ids, runbook_paths):
     rx = re.compile(r"\bExercises? (\d)\.(\d+)(?:\s*[–-]\s*(\d)\.(\d+))?")
-    for path in md_files():
+    # While some modules still use the old Part.Exercise numbering, "Exercise 2.4" outside a runbook may
+    # mean another module's exercise, so only runbooks are checked until all seven modules are converted.
+    paths = md_files() if len(runbook_ids) == 7 else runbook_paths
+    for path in paths:
         text = open(path, encoding="utf-8").read()
         for in_fence, _i, no, line in split_fences(text):
             if in_fence:
@@ -209,16 +212,17 @@ def check_translations(path, text):
 
 
 def main():
-    runbook_ids = {}
+    runbook_ids, runbook_paths = {}, []
     for path in sorted(md_files()):
         text = open(path, encoding="utf-8").read()
         check_links(path)
         if check_runbook(path, text):
+            runbook_paths.append(path)
             m = re.match(r"0(\d)-", os.path.basename(path))
             if m and rel(os.path.dirname(path)) == "modules":
                 runbook_ids[m.group(1)] = {f"{a}.{b}" for a, b in re.findall(r"^###\s+(\d)\.(\d+)\s", text, re.M)}
         check_translations(path, text)
-    check_exercise_refs(runbook_ids)
+    check_exercise_refs(runbook_ids, runbook_paths)
     check_javax_regex()
     for w in warnings:
         print("WARN ", w)
