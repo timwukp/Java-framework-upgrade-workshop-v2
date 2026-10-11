@@ -70,4 +70,4 @@ Each module's own "If you run late" note wins; in short:
   installed per user, and the spec uses it); the instructor demos the Plan session (Exercise 4.3, at
   most 5 minutes). In Exercise 4.12, skip the app start but keep step 1. Never skip the test-count
   checks or the `stage-3` tag.
-- **Module 5:** Part 1 and Part 4 only. Do Part 2 and the optional Bugfix lab afterwards.
+- **Module 5:** Exercises 5.1 and 5.4 only. Do 5.2, 5.3 and Extra 5.A (the Bugfix lab) afterwards.

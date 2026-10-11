@@ -111,12 +111,38 @@ Error bodies seen for a duplicate e-mail:
 
 ## Still unverified
 
-- **Everything inside Kiro**, including:
-  - the exact UI labels and the workspace-trust prompt;
-  - whether and when hooks fire (before or after Accept in Supervised mode), which JDK they run with, and whether their commands raise approval prompts;
-  - how the agent performs each spec;
-  - skill and power activation, and per-module credit use.
-- **Timing of each module** with real participants.
+- **Everything inside Kiro** (list below).
+- **Timing of each module** with real participants, including the new runbook layout (2026-10-11):
+  the minutes per exercise are carried over from the previous layout, and Module 3's split of the
+  run-the-app exercise (3.12 and 3.13) and its skill skeleton (3.14) are estimates.
 - **Module 6 platform deployments** (WAR on WildFly / Open Liberty, containers, z/OS) were not run.
+- **The learner scripts** (`scripts/`, added 2026-10-11): argument handling, refusals, resets and the
+  password handling pass `tools/test-scripts.sh` (quick mode); the real builds and smoke tests at every
+  stage (`--full`) are the next EC2 run.
+
+### Unconfirmed in a Kiro build
+
+Each item names where the material depends on it. The instructor's dry run
+([instructor guide, section 2](instructor-guide.md#2-dry-run-do-this-a-few-days-before-on-the-same-network-participants-will-use))
+is where they get confirmed or corrected.
+
+| ID | What is unconfirmed | Where it matters |
+|---|---|---|
+| U-01 | Exact UI labels and positions: the workspace-trust prompt, the confirm control in a spec session, the agent selector groups (**User** or **Global**), where the Kiro output panel is | Setup section 8; Modules 1–2 |
+| U-02 | Whether and when `PostTaskExec` fires in Supervised mode (before or after **Accept**) | Module 2, Exercises 2.6–2.7 |
+| U-03 | Which JDK hook commands run with after a JDK switch and a `kiro .` restart | Modules 2 and 4 (JDK switches) |
+| U-04 | Whether hook commands raise approval prompts under your permission rules | Modules 1, 3 and 5 |
+| U-05 | How Kiro passes a hook's stdout and stderr to the agent | Modules 2–5 (the verify hook) |
+| U-06 | Whether the eye icon writes `"enabled"` to the hook file (`check-env.sh` reports the file state) | Module 3, Exercises 3.3, 3.4 and 3.13 |
+| U-07 | Typing `#`/`/` and choosing from the menu (the runbooks' **Attach first**) versus pasting the token text | Every module |
+| U-08 | How Kiro names a spec folder | Modules 2–4 |
+| U-09 | Whether a new skill appears in `/` without reopening the workspace; how the chat shows that a skill or power was used | Modules 3, 4 and 7 |
+| U-10 | How an installed custom power is shown; a second folder import of a power with the same `name`; how a folder-imported power picks up edits | Modules 4 and 7 |
+| U-11 | The `kiro` command on PATH on macOS (the Command Palette action's name) | Setup section 3 |
+| U-12 | Opening the parent folder's git repository from Source Control after dismissing the prompt | Module 1 (T-K06) |
+| U-13 | Which shell Kiro uses for hook commands, and the shell tool's `PreToolUse` payload fields | Module 5, Exercise 5.3 |
+
+Details for each are in the **Evidence** section of the module's why page, for example
+[Module 2](../modules/why/02-runway-boot27-java21.md#evidence).
 
 Use the dry-run checklist in the [instructor guide](instructor-guide.md) for these.
