@@ -137,11 +137,15 @@ Facilitation tips:
 Everyone runs this from `sample-app/` in Kiro's terminal and raises a hand if anything differs:
 
 ```bash
-mvn -v
-mvn -B clean verify | tail -n 15
-ls ~/.m2/repository/org/springframework/boot/spring-boot/
-python3 --version && curl --version | head -n 1
+../scripts/check-env.sh
+../scripts/verify-stage.sh 0
 ```
+
+`check-env.sh` covers the tools, the JDK of the terminal and of Maven, the Maven cache and the
+workspace files; `verify-stage.sh 0` builds once and passes only with `Tests run: 14`. Without the
+scripts: `mvn -v`, `mvn -B clean verify | tail -n 15`,
+`ls ~/.m2/repository/org/springframework/boot/spring-boot/` and
+`python3 --version && curl --version | head -n 1`.
 
 - [ ] `mvn -v`: Maven 3.9+ and `Java version: 1.8.0_…`.
 - [ ] `Tests run: 14` and `BUILD SUCCESS`.

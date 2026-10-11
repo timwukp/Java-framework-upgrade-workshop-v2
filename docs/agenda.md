@@ -8,13 +8,15 @@ powers.
 
 ## Before the day
 
-Every participant completes [participant-setup.md](participant-setup.md):
+Every participant completes [participant-setup.md](participant-setup.md) (60 to 120 minutes, mostly
+downloads; its section 0 lists what to arrange a week ahead):
 
 - the baseline build on JDK 8 (`mvn -B clean verify`, expected `Tests run: 14`), with Kiro started from
   that JDK 8 terminal with `kiro .`;
 - section 7, the pre-download for every stage. Check it with
   `ls ~/.m2/repository/org/springframework/boot/spring-boot/`, which must list `2.2.4.RELEASE`,
-  `2.7.18`, `3.5.16` and `4.1.1` (the result verified in the 2026-10-10 dry run).
+  `2.7.18`, `3.5.16` and `4.1.1` (the result verified in the 2026-10-10 dry run);
+- section 9, the ready check: `../scripts/check-env.sh` from `sample-app/` reports no `FAIL`.
 
 A participant who arrives without a green baseline loses most of Module 1. One who skipped the
 pre-download falls behind at the first build of each new Spring Boot line.
