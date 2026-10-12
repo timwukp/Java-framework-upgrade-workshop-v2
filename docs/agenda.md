@@ -58,10 +58,12 @@ from `sample-app/`. Its rows set the JDK, the tag and the hook states for the mo
 
 Each module's own "If you run late" note wins; in short:
 
-- **Module 1:** in Part 1 skip the Exercise 1.3 prompt. In Part 5, combine prompts C and D into one
-  message. Fix `tech.md` (Exercise 4.2, step 4) during the break.
-- **Module 2:** skip Part 4 and the optional `curl` check in Part 3. More than 15 minutes behind at the
-  start of Part 3: reset to stage 1 (row "Module 3"), then do only step 2 of Exercise 5.1.
+- **Module 1:** skip the Exercise 1.3 prompt. In Exercise 1.12, send prompts C and D as one message
+  (the combined prompt is on the Module 1 why page). Fix `tech.md` (Exercise 1.10, step 4) during the
+  break.
+- **Module 2:** skip Extra 2.A and the optional smoke test in Exercise 2.13. More than 15 minutes
+  behind at the start of Exercise 2.10: reset to stage 1 (row "Module 3"), then do only step 2 of
+  Finish.
 - **Module 3:** skip the optional Exercises 2.4 and 3.1. In Part 5, copy the reference skill instead of
   writing it (the Exercise 5.1 fallback) and write your own after the workshop. In Part 6, skip the
   reference diff.

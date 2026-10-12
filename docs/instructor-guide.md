@@ -111,8 +111,8 @@ Every demo is **inside** the module's time box and takes at most 5 minutes.
 | Time | What you do | What participants do |
 |---|---|---|
 | 09:00 | Frame the day: staged migration, why Kiro has no magic upgrade button, how verification works. Run the pre-flight check (section 5) | Pre-flight check |
-| 09:15 | Module 1, Part 1 demo: Plan workflow with `#codebase`; Supervised mode; checkpoint vs git | Module 1 |
-| 10:30 | Module 2, Part 1 demo: create the stage-1 spec and review the requirements together before any task runs | Module 2 |
+| 09:15 | Module 1, Exercises 1.1–1.4 demo: Plan workflow with `#codebase`; Supervised mode; checkpoint vs git | Module 1 |
+| 10:30 | Module 2, Exercises 2.2–2.3 demo: create the stage-1 spec and review the requirements together before any task runs | Module 2 |
 | 13:00 | Module 3 demo: the guard hook catching a `javax` import; skill activation | Module 3 |
 | 15:00 | Module 4, Part 1 demo: import the power (this is also Exercise 1.2's fallback); a Plan session for Boot 4 | Module 4 |
 | 16:35 | Module 5, Part 3 demo: Bugfix spec on the CSRF regression, with `verify-after-spec-task` paused and then re-enabled | Module 5 |
@@ -156,7 +156,7 @@ scripts: `mvn -v`, `mvn -B clean verify | tail -n 15`,
   both skills.
 - [ ] A paid plan or an organization seat; the subscription dashboard shows credits remaining.
 
-A helper fixes failures during Module 1, Part 1. Someone with an empty cache starts the
+A helper fixes failures during Module 1, Exercises 1.1–1.4. Someone with an empty cache starts the
 [section 7](participant-setup.md#7-pre-download-the-dependencies-for-every-stage) commands now; they
 build in the `solutions/` folders, not in `sample-app/target/`.
 
@@ -167,8 +167,8 @@ stage's tag resets before the first exercise.
 
 | Module | By then, be at | If not |
 |---|---|---|
-| 1 (09:15–10:15) | **09:40:** Exercise 4.1, with branch `workshop` and tag `stage-0` | Module 1 changes no code, so nothing to reset: do Part 3 now, then apply the module's cuts. Nobody leaves Module 1 without `stage-0`. |
-| 2 (10:30–12:00) | **11:25:** Exercise 3.1 (Switch the JDK) | Still in Exercise 2.2 (`@Valid`) or earlier: reset to stage 1 (row "Module 3"), then do only step 2 of Exercise 5.1. |
+| 1 (09:15–10:15) | **09:40:** Exercise 1.9, with branch `workshop` and tag `stage-0` | Module 1 changes no code, so nothing to reset: do Exercise 1.8 now, then apply the module's cuts. Nobody leaves Module 1 without `stage-0`. |
+| 2 (10:30–12:00) | **11:25:** Exercise 2.10 (Switch the JDK) | Still in Exercise 2.7 (`@Valid`) or earlier: reset to stage 1 (row "Module 3"), then do only step 2 of Finish. |
 | 3 (13:00–14:45) | **14:10:** Exercise 5.1 (Write the skill), compiling, 14 tests on the Vintage engine | Still in Part 4: copy the reference skill (the Exercise 5.1 fallback). Not green with 14 tests by 14:35: reset to stage 2 (row "Module 4") in the break. |
 | 4 (15:00–16:20) | **15:50:** Exercise 4.1 (Switch to JDK 25 and restart Kiro) | Exercise 3.4 not green with 14 tests by 16:00: reset to stage 3 (row "Module 5") instead of finishing Part 4. |
 | 5 (16:20–16:50) | **16:40:** everyone starts Exercise 5.4 (final verification), wherever they are | `mvn -B clean verify` not green: reset to stage 3 first. Part 2 and the Bugfix lab wait until after the day. |
@@ -178,8 +178,8 @@ stage's tag resets before the first exercise.
 | When | Say to the room |
 |---|---|
 | 09:00 | Hooks: `verify-after-spec-task` on, `jakarta-import-guard` off. Leave them until a module says otherwise. |
-| ~10:55, Module 2 Part 2 (first spec task) | One build at a time. After a task, read the hook's result in the Kiro output, or run Maven yourself only after the hook has finished (builds share `target/`). |
-| ~11:25, Module 2 Exercise 3.1 | JDK 21: make it the default, **quit Kiro**, start it from a new terminal with `kiro .`, check the agent's `mvn -v`. |
+| ~10:55, Module 2 Exercise 2.6 (first spec task) | One build at a time. After a task, read the hook's result in the Kiro output, or run Maven yourself only after the hook has finished (builds share `target/`). |
+| ~11:25, Module 2 Exercise 2.10 | JDK 21: make it the default, **quit Kiro**, start it from a new terminal with `kiro .`, check the agent's `mvn -v`. |
 | ~13:07, Module 3 Exercise 1.3 | Enable `jakarta-import-guard`. It stays on for the rest of the day. |
 | ~13:10, Module 3 Exercise 2.1 | Pause `verify-after-spec-task`: the build is red on purpose until Exercise 4.3. |
 | ~13:23, Module 3 Part 3 | Autopilot only for the mechanical rename (Exercises 3.2–3.3); back to Supervised in Exercise 3.4. |

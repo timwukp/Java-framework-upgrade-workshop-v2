@@ -1240,7 +1240,7 @@ diff -r ../solutions/stage-2-boot35-java21/src src
 ```
 
 Expect only cosmetic differences: comments, test method names, layout. If you skipped the optional
-Module 2 Part 4, differences in `User`, `UserService` and `UserController` are expected. Any other
+Module 2 Extra 2.A, differences in `User`, `UserService` and `UserController` are expected. Any other
 difference in a dependency, an import, a security rule or a property is worth a second look.
 
 If you have time left, switch to the `migration-reviewer` agent and ask it to review
