@@ -1,4 +1,4 @@
-# Participant setup (complete before the workshop day, about 45 minutes)
+# Participant setup (before the workshop day: 60 to 120 minutes, mostly downloads)
 
 Set up your machine before the day. Module 1 assumes you already have a green baseline build on JDK 8.
 If you arrive without one, you lose most of Module 1.
@@ -9,22 +9,32 @@ If you arrive without one, you lose most of Module 1.
 
 ## What you'll do
 
-1. Install three JDKs (8, 21, 25) and learn to switch between them per terminal.
+0. One week before: sort out the things that take other people's time (plan, approvals, proxy).
+1. Install three JDKs (8, 21, 25) and learn to switch between them.
 2. Install Maven 3.9+, Git, Python 3, curl and (optionally) Docker.
-3. Install Kiro IDE 1.x, sign in, and check your plan and credits.
+3. Install Kiro IDE 1.x, sign in, put `kiro` on your PATH, and check your plan and credits.
 4. Install the Java and Spring Boot extension packs from Open VSX.
-5. Clone the repository, open `sample-app/` in Kiro with `kiro .`, and trust it.
+5. Clone the repository.
 6. Run the baseline build on JDK 8 and write down the test count.
 7. Pre-download the dependencies and Maven plugins for every stage.
+8. Open `sample-app/` in Kiro from a JDK 8 terminal, and trust it.
+9. Check you are ready with one script.
 
-## Prerequisites
+## 0. One week before
 
-- A macOS or Linux laptop where you can install software. On a managed corporate laptop, ask your IT
-  team about installer permissions, the network proxy and approval for JDK 21 and 25 *before* the day.
-- Network access to download JDKs, Maven dependencies (Maven Central or your company mirror) and Kiro.
-- The repository URL, which your instructor sends you.
-- The optional labs (Module 4's appendix, Modules 6 and 7) list their own extra prerequisites at the top
-  of each module. You don't need them for the core day.
+These need someone else, so start them early:
+
+- [ ] **A paid Kiro plan or an organization seat** for the full day: the Free plan's 50 credits run out
+  well before the end (section 3, "Plans and credits").
+- [ ] **On a managed corporate laptop:** ask your IT team about installer permissions, the network proxy
+  and approval for JDK 21 and 25.
+- [ ] **Network access** to download JDKs, Maven dependencies (Maven Central or your company mirror) and
+  Kiro. Behind a proxy or mirror, prepare `~/.m2/settings.xml` (section 2).
+- [ ] **macOS:** install the Xcode Command Line Tools (they bring `python3`; the install takes several
+  minutes).
+- [ ] **Optional labs only:** Module 4's appendix and Modules 6 and 7 list their own prerequisites at the
+  top of each module. Module 7's Parts 2 and 3 need a GitHub account and a paid plan (API keys, Kiro
+  Web), and, on an administered subscription, the admin to enable API keys and Cloud Sessions.
 
 > Material checked against the Kiro docs on 2026-10-09. Kiro ships often. Where the UI differs from
 > this page, the [Kiro docs](https://kiro.dev/docs/) win.
@@ -51,7 +61,7 @@ is a Java 8 application.
 
 > **No JDK 25 approved yet?** Spring Boot 4.1 runs on Java 17 or later, so you can finish stage 3 on
 > JDK 21 with `java.version` 21. You skip only the Java 25 step (Module 4, Part 4). Tell the instructor
-> before the day.
+> before the day (self-paced: use Module 4's "No JDK 25" variant).
 
 Install the three JDKs with **one** of the options below.
 
@@ -124,24 +134,25 @@ A helper in `~/.bashrc` (or `~/.zshrc`): `jdk() { export JAVA_HOME="/usr/lib/jvm
 then `jdk <jdk-folder>`. `update-alternatives --config java` changes only the system-wide `java`
 command; Maven prefers `JAVA_HOME` when it is set, so set `JAVA_HOME`.
 
-### Make JDK 8 the default, and start Kiro from that terminal
+### Change the JDK for Kiro (Modules 2 and 4, and after a reset)
 
-The Kiro agent and the hooks run commands on your machine with the environment Kiro was started with.
-A Kiro started from the Dock or an app launcher may not use the JDK your terminal uses. So every time
-the active JDK changes (now, in Module 2, in Module 4, and after a reset):
+Two words matter here:
 
-1. Make the JDK the default for new terminals: `sdk default java …`, or the `export JAVA_HOME=…` line
-   in `~/.zshrc` or `~/.bashrc`.
+- **Active**: the JDK of *this* terminal (`sdk use …`, or `export JAVA_HOME=…` typed in the terminal).
+- **Default**: the JDK every *new* terminal gets (`sdk default java …`, or the `export JAVA_HOME=…` line
+  in `~/.zshrc` or `~/.bashrc`).
+
+The Kiro agent and the hooks run commands with the environment Kiro was started with, and Kiro's own
+terminals start as new terminals. So whenever the workshop changes the JDK (in Module 2, in Module 4,
+and after a reset):
+
+1. Make the new JDK the **default**.
 2. Quit Kiro completely.
-3. Open a new terminal, check `mvn -v`, and start Kiro from `sample-app/` with `kiro .`
-   ([Your first project](https://kiro.dev/docs/getting-started/first-project/)).
+3. Open a new terminal in `sample-app/`, check `mvn -v`, and start Kiro with `kiro .`.
+4. Ask the agent to run `mvn -v`: it must show the same Java version.
 
-Before the day, do this once with **JDK 8**. In Module 1 you ask the agent to run `mvn -v` to confirm
-it sees JDK 8.
-
-> Verify: if your shell says `kiro: command not found`, add the `kiro` command to your PATH. On macOS,
-> Code OSS-based editors offer a Command Palette action such as **Shell Command: Install 'kiro' command
-> in PATH**; check the name in your build. Linux packages usually install the command.
+`../scripts/check-env.sh --stage N` (from `sample-app/`) checks that `java` and Maven agree. After the
+workshop, set your usual default JDK again.
 
 ### Verify
 
@@ -215,6 +226,16 @@ On first launch Kiro walks you through:
 
 Docs: [Authentication](https://kiro.dev/docs/getting-started/authentication/)
 
+### Put the `kiro` command on your PATH
+
+You start Kiro from a terminal with `kiro .`, so the `kiro` command must be on your PATH. Linux packages
+usually install it. On macOS, Code OSS-based editors offer a Command Palette action such as **Shell
+Command: Install 'kiro' command in PATH**.
+
+> Unconfirmed: the exact name of that action in your Kiro build.
+
+Check it in a new terminal: `command -v kiro` prints a path.
+
 ### Plans and credits
 
 Agent work in Kiro is metered in **credits**. Read this before the day so you don't run out at lunch.
@@ -234,7 +255,7 @@ What this means for a full workshop day:
 - Per the pricing page, "simple prompts can consume less than 1 credit. More complex prompts, such as
   executing a spec task, typically cost more than 1 credit." Prompts, spec refinement, task execution
   and agent-prompt hooks all use credits. Shell-command hooks (the kind this workshop ships) do not.
-- Kiro does not publish a per-module figure. Your instructor may share the figure from their dry run.
+- Kiro does not publish a per-module figure. Your instructor may share the figure from their own test run.
   Modules 2 to 5 generate and run several specs with many tasks each. **Expect 50 credits to run out
   well before the end of the day.** Use a paid plan (Pro or higher) or a seat from your organization
   for the full day.
@@ -283,78 +304,26 @@ Docs: [Extension registry](https://kiro.dev/docs/ide/editor/extension-registry/)
 
 ---
 
-## 5. Clone the repository and open `sample-app/` as the workspace
+## 5. Clone the repository
 
-### Clone and open
-
-In a terminal where **JDK 8** is active (section 1):
+In any terminal:
 
 ```bash
-git clone <repository-url>
-cd <repository>/sample-app
-kiro .
+git clone https://github.com/timwukp/Java-framework-upgrade-workshop-v2.git
+cd Java-framework-upgrade-workshop-v2
 ```
 
-Use the URL your instructor sent. Don't change anything in `sample-app/`: every outdated pattern in it
-is an exercise.
-
-### Open `sample-app/`, not the repository root
-
-`kiro .` from inside `sample-app/` opens the right folder with your terminal's JDK. **File > Open
-Folder** → `sample-app` also opens it, but Kiro then may not use your terminal's JDK (section 1).
-
-Why this folder:
-
-- `sample-app/.kiro/` holds the workshop's steering files, hooks, custom agent and two skills
-  (`jakarta-namespace-migration`, `spring-security-lambda-dsl`). Kiro loads workspace configuration
-  from the `.kiro/` folder of the workspace you open.
-- The reference solutions live in `solutions/` at the repository root, **outside** the workspace, so
-  the agent doesn't read or copy them when it searches your codebase.
-
-### Trust the workspace
-
-Kiro treats every workspace as **untrusted** until you trust it. When Kiro asks whether you trust
-`sample-app`, choose to trust it.
-
-Why it matters. Until a workspace is trusted, Kiro:
-
-- does **not** load the workspace's custom agents, steering files, MCP server configuration or skills
-  (and not its workflow files);
-- asks before **every** shell command, even when a saved rule allows it;
-- asks before writing to `.kiro/steering` or `.kiro/skills`.
-
-This protects you from a cloned repository that tries to change how the agent behaves. Your trust
-decision is stored outside the workspace, so a repository can't trust itself. You trust this one
-because the workshop's `.kiro/` content is what you are here to learn.
-
-> Verify: the exact wording and position of the trust prompt in your Kiro build. The docs describe
-> what trust does, not the button. If you dismissed the prompt, check the
-> [Workspace trust](https://kiro.dev/docs/permissions/) section of the docs.
-
-Docs: [Permissions: workspace trust](https://kiro.dev/docs/permissions/)
-
-### Verify
-
-1. Click the **Kiro ghost icon** in the activity bar to open the Kiro panel. It has sections for Specs,
-   Agent Hooks, Steering and MCP Servers.
-2. Under **Steering** you should see `migration-standards`, `migration-playbook`, `pom-rules` and
-   `test-rules`.
-3. Under **Agent Hooks** you should see `verify-after-spec-task` (enabled) and `jakarta-import-guard`
-   (disabled). Leave both as they are; the modules tell you when to change them.
-4. Open the chat (Cmd+L on macOS, Ctrl+L on Linux) and type `/`. The menu should list
-   `migration-playbook` among the slash commands.
-
-If the steering files are missing, the workspace is not trusted, or you opened the repository root
-instead of `sample-app/`.
+If your instructor sends you a different URL (for example your organization's fork), use that.
+Don't change anything in `sample-app/`: every outdated pattern in it is an exercise.
 
 ---
 
 ## 6. Baseline build on JDK 8
 
-Run this in a terminal (Kiro's integrated terminal, opened with ``Ctrl+` ``, or any other) where
-JDK 8 is active, from `sample-app/`:
+In a terminal where JDK 8 is active (section 1), from the repository folder:
 
 ```bash
+cd sample-app
 java -version
 mvn -v
 mvn -B clean verify
@@ -369,7 +338,8 @@ What to look for:
 3. The last lines show **`BUILD SUCCESS`**.
 
 **Write down the "Tests run" total you see.** The expected number is 14 at every stage, but you read
-your own number at every check. If yours isn't 14, tell the instructor. From Module 2 on, a migration
+your own number at every check. If yours isn't 14, see
+[T-A14](troubleshooting.md#t-a14-the-baseline-test-count-isnt-14). From Module 2 on, a migration
 step is done only if the build passes **and** the test count did not go down. Some upgrades make tests
 silently stop running while the build stays green.
 
@@ -377,6 +347,12 @@ To see only the end of the output:
 
 ```bash
 mvn -B clean verify | tail -n 30
+```
+
+The same check as one command, which also fails if fewer than 14 tests ran (used from Module 1 on):
+
+```bash
+../scripts/verify-stage.sh 0
 ```
 
 Optional: start the app and call the API as described in [`sample-app/README.md`](../sample-app/README.md).
@@ -432,46 +408,122 @@ Look for `2.2.4.RELEASE`, `2.7.18`, `3.5.16` and `4.1.1` (more versions are fine
 2026-10-10 dry run (Linux, Corretto, Maven 3.9.11): the `dependency:tree` and `dependency:get` commands
 succeed and the cache then lists these four versions.
 
-If one fails, tell the instructor before the day and include the last 30 lines of output. It usually
-means a proxy or mirror problem, or the wrong JDK. Occasionally it is a problem in the reference
-solution itself, which the instructor needs to know about.
+If one fails, tell the instructor before the day (self-paced: open an issue on the repository) and
+include the last 30 lines of output. It usually means a proxy or mirror problem, or the wrong JDK.
+Occasionally it is a problem in the reference solution itself, which the instructor needs to know
+about.
 
 ---
 
-## Pre-workshop checklist
+## 8. Open `sample-app/` in Kiro and trust it
 
-- [ ] You are on macOS or Linux (or a Linux VM / cloud desktop).
-- [ ] `java -version` shows 8, 21 and 25 in turn after switching, and you know how to switch per terminal.
-- [ ] JDK 8 is the default for new terminals, and you started Kiro from a JDK 8 terminal with `kiro .`.
-- [ ] `mvn -v` shows Maven 3.9+ on Java 1.8.
-- [ ] `git --version` shows 2.23 or later; `python3 --version` and `curl --version` work.
+### Start Kiro from a JDK 8 terminal
+
+Make **JDK 8 the default** for new terminals (section 1), then quit Kiro if it is running, open a new
+terminal and start Kiro from `sample-app/`:
+
+```bash
+cd Java-framework-upgrade-workshop-v2/sample-app    # from the folder you cloned into
+mvn -v
+kiro .
+```
+
+`mvn -v` must show `Java version: 1.8.0_…`. In Module 1 you ask the agent to run `mvn -v` to confirm it
+sees JDK 8 too. Docs: [Your first project](https://kiro.dev/docs/getting-started/first-project/)
+
+### Open `sample-app/`, not the repository root
+
+`kiro .` from inside `sample-app/` opens the right folder with your terminal's JDK. **File > Open
+Folder** → `sample-app` also opens it, but Kiro then may not use your terminal's JDK (section 1).
+
+Why this folder:
+
+- `sample-app/.kiro/` holds the workshop's steering files, hooks, custom agent and two skills
+  (`jakarta-namespace-migration`, `spring-security-lambda-dsl`). Kiro loads workspace configuration
+  from the `.kiro/` folder of the workspace you open.
+- The reference solutions live in `solutions/` at the repository root, **outside** the workspace, so
+  the agent doesn't read or copy them when it searches your codebase.
+
+### Trust the workspace
+
+Kiro treats every workspace as **untrusted** until you trust it. When Kiro asks whether you trust
+`sample-app`, choose to trust it.
+
+Why it matters. Until a workspace is trusted, Kiro:
+
+- does **not** load the workspace's custom agents, steering files, MCP server configuration or skills
+  (and not its workflow files);
+- asks before **every** shell command, even when a saved rule allows it;
+- asks before writing to `.kiro/steering` or `.kiro/skills`.
+
+This protects you from a cloned repository that tries to change how the agent behaves. Your trust
+decision is stored outside the workspace, so a repository can't trust itself. You trust this one
+because the workshop's `.kiro/` content is what you are here to learn.
+
+> Unconfirmed: the exact wording and position of the trust prompt in your Kiro build. The docs describe
+> what trust does, not the button. If you dismissed the prompt, check the
+> [Workspace trust](https://kiro.dev/docs/permissions/) section of the docs.
+
+Docs: [Permissions: workspace trust](https://kiro.dev/docs/permissions/)
+
+### Verify
+
+1. Click the **Kiro ghost icon** in the activity bar to open the Kiro panel. It has sections for Specs,
+   Agent Hooks, Steering and MCP Servers.
+2. Under **Steering** you should see `migration-standards`, `migration-playbook`, `pom-rules` and
+   `test-rules`.
+3. Under **Agent Hooks** you should see `verify-after-spec-task` (enabled) and `jakarta-import-guard`
+   (disabled). Leave both as they are; the modules tell you when to change them.
+4. Open the chat (Cmd+L on macOS, Ctrl+L on Linux) and type `/`. The menu should list
+   `migration-playbook` among the slash commands.
+
+If the steering files are missing, the workspace is not trusted, or you opened the repository root
+instead of `sample-app/`.
+
+---
+
+---
+
+## 9. Am I ready?
+
+From `sample-app/`, in a JDK 8 terminal:
+
+```bash
+../scripts/check-env.sh
+```
+
+Every line should say `PASS`. A `WARN` for JDK 25 is fine if you will use Module 4's "No JDK 25"
+variant; any other `WARN` or `FAIL` names what to fix. Then tick off what a script can't see:
+
 - [ ] Kiro IDE 1.x is installed, you are signed in, and shell integration is enabled.
-- [ ] You know your plan and credit allowance, and have a paid plan or an organization seat for the full day.
+- [ ] You have a paid plan or an organization seat for the full day, and know your credit allowance.
 - [ ] Extension Pack for Java and Spring Boot Extension Pack are installed.
-- [ ] `sample-app/` is open as the workspace and trusted; the four steering files and both hooks appear
-  in the Kiro panel.
-- [ ] `mvn -B clean verify` on JDK 8 ends with `BUILD SUCCESS`, and you wrote down the "Tests run" total (expected: 14).
-- [ ] The section 7 commands succeeded, and `~/.m2/repository/org/springframework/boot/spring-boot/`
-  lists 2.2.4.RELEASE, 2.7.18, 3.5.16 and 4.1.1.
+- [ ] Kiro was started from a JDK 8 terminal with `kiro .`; `sample-app/` is open and trusted; the four
+  steering files and both hooks appear in the Kiro panel.
+- [ ] `mvn -B clean verify` on JDK 8 ended with `BUILD SUCCESS`, and you wrote down the "Tests run"
+  total (expected: 14).
+- [ ] The section 7 commands succeeded.
+
+---
 
 ## Troubleshooting
 
-| Symptom | Cause | Fix |
-|---|---|---|
-| `mvn -v` shows Java 21 or 25 in your "JDK 8" terminal | `JAVA_HOME` points to another JDK (on Linux, `update-alternatives` changes only `java`) | Switch per terminal (section 1). `mvn -v` must show `1.8.0_…`. |
-| The agent's `mvn -v` shows another JDK than your terminal | Kiro was started from the Dock or a launcher, or before you changed the default | Quit Kiro and start it from a terminal with the right JDK: `cd sample-app && kiro .` |
-| `kiro: command not found` | The `kiro` command isn't on your PATH | See the Verify note in section 1, or open `sample-app/` with **File > Open Folder** for now and tell the instructor. |
-| Build fails on a newer JDK with a Lombok error, for example an `IllegalAccessError` mentioning `com.sun.tools.javac` | The baseline pins Lombok 1.18.10, which cannot run on JDK 16+ | Build on JDK 8. Don't upgrade Lombok yourself; that is a Module 2 exercise. |
-| `/usr/libexec/java_home -v 1.8` says it can't find a matching JVM | JDK 8 not installed, or installed by unpacking an archive | Install the Corretto 8 `.pkg`, or use SDKMAN. |
-| `python3` opens an "install command line developer tools" dialog (macOS) | The Xcode Command Line Tools aren't installed | Accept the install before the day; it takes several minutes. |
-| Dependency downloads fail or time out | Proxy or blocked Maven Central | Configure a proxy or your company mirror in `~/.m2/settings.xml`. |
-| macOS says Kiro "is damaged" or can't be opened | Download quarantine flag | Per the Kiro troubleshooting page: `sudo xattr -d com.apple.quarantine /Applications/Kiro.app` |
-| Sign-in page doesn't load behind a proxy | Browser sign-in uses the OS network stack, not Kiro's proxy settings | Fix the OS or browser proxy. The [installation page](https://kiro.dev/docs/getting-started/installation/) links to the full proxy and allowlist reference. |
-| The agent can't run commands, or `#terminal` is empty | Shell integration not active | Command Palette → **Kiro: Enable Shell Integration**. For zsh, add `[[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)"` to `~/.zshrc` (bash: same line with `bash`). Powerlevel10k users also add `typeset -g POWERLEVEL9K_TERM_SHELL_INTEGRATION=true`. |
-| Steering files don't appear in the Kiro panel | Workspace not trusted, or the repository root is open | Open `sample-app/` and trust it. |
-| Editor shows Java errors but `mvn -B clean verify` succeeds | The editor's Java tooling uses its own JDK and project import | Trust Maven. > Verify: the Java extension's README for how to point its language server at a JDK (it may need a newer JDK than the project's JDK 8). |
-| You run out of credits during the day | Free plan (50 credits) | Use a paid plan or an organization seat. Check usage in Kiro's subscription dashboard. On the day, pair with a neighbour until it's sorted. |
-| `docker compose up` fails | Docker not installed or `POSTGRES_PASSWORD` not set | Docker is optional. If you use it, export `POSTGRES_PASSWORD` first (see `sample-app/README.md`). |
+| Symptom | Fix |
+|---|---|
+| `mvn -v` shows Java 21 or 25 in your "JDK 8" terminal | [T-A01](troubleshooting.md#t-a01-mvn--v-shows-the-wrong-java-in-your-terminal) |
+| The agent's `mvn -v` shows another JDK than your terminal | [T-A02](troubleshooting.md#t-a02-the-agents-or-the-hooks-java-is-not-your-terminals) |
+| `kiro: command not found` | [T-A03](troubleshooting.md#t-a03-kiro-command-not-found) |
+| The baseline fails on a newer JDK with a Lombok `IllegalAccessError` | [T-B06](troubleshooting.md#t-b06-lombok-illegalaccesserror-lombokprocessor-cannot-access-javacprocessingenvironment) |
+| `/usr/libexec/java_home -v 1.8` finds no JVM | [T-A04](troubleshooting.md#t-a04-usrlibexecjava_home--v-18-cant-find-a-matching-jvm) |
+| `python3` opens an "install developer tools" dialog | [T-A05](troubleshooting.md#t-a05-python3-opens-an-install-command-line-developer-tools-dialog-macos) |
+| Dependency downloads fail or time out | [T-A06](troubleshooting.md#t-a06-dependency-downloads-fail-or-time-out) |
+| macOS says Kiro "is damaged" | [T-A07](troubleshooting.md#t-a07-macos-says-kiro-is-damaged-or-cant-be-opened) |
+| The sign-in page doesn't load behind a proxy | [T-A08](troubleshooting.md#t-a08-the-sign-in-page-doesnt-load-behind-a-proxy) |
+| The agent can't run commands, or `#terminal` is empty | [T-A09](troubleshooting.md#t-a09-the-agent-cant-run-commands-or-terminal-is-empty) |
+| Steering files don't appear in the Kiro panel | [T-K01](troubleshooting.md#t-k01-steering-files-custom-agents-or-skills-dont-appear) |
+| The editor shows Java errors, but Maven succeeds | [T-A10](troubleshooting.md#t-a10-the-editor-shows-java-errors-but-mvn--b-clean-verify-succeeds) |
+| You run out of credits | [T-A11](troubleshooting.md#t-a11-you-run-out-of-credits-during-the-day) |
+| `docker compose up` fails | [T-A12](troubleshooting.md#t-a12-docker-compose-up-fails) |
 
 More: [all workshop symptoms and fixes](troubleshooting.md) · [Kiro IDE troubleshooting](https://kiro.dev/docs/ide/troubleshooting/)
 

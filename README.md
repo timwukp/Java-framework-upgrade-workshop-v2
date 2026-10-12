@@ -47,15 +47,29 @@ Deterministic tools such as OpenRewrite recipes or the AWS Transform power can d
 changes. Module 4's optional appendix (outside the core time box) covers them, including their
 prerequisites and licensing notes.
 
+## Start here
+
+| You are… | Read, in this order |
+|---|---|
+| A participant | [Participant setup](docs/participant-setup.md) (before the day, 60 to 120 minutes, mostly downloads) → [Module 1](modules/01-setup-and-assessment.md). Keep the [day sheet](docs/quick-reference.md) and [troubleshooting](docs/troubleshooting.md) open. |
+| Working through it alone | The same. Every module ends with a check you can run yourself; if you fall behind, [reset to a stage](solutions/README.md#reset-your-workspace-to-a-stage-the-one-procedure-all-modules-use). |
+| An instructor | [Instructor guide](docs/instructor-guide.md) and [agenda](docs/agenda.md), then the participant path above as your dry run. |
+
+**One week before the day:** get a paid Kiro plan or an organization seat (the Free plan's credits run
+out well before the end), ask IT about installing JDK 21 and 25 and about the proxy, and on macOS install
+the Xcode Command Line Tools. Details: [participant setup, section 0](docs/participant-setup.md#0-one-week-before).
+
 ## Quick start
 
-On macOS or Linux, in a terminal where JDK 8 is active (see [participant-setup.md](docs/participant-setup.md)):
+After the [participant setup](docs/participant-setup.md) (JDKs, Maven, Kiro and sign-in, the
+pre-download), in a terminal where JDK 8 is active, on macOS or Linux:
 
 ```bash
-git clone <this-repository-url>
-cd <repository>/sample-app
-mvn -B clean verify    # expect Tests run: 14 and BUILD SUCCESS
-kiro .                 # opens sample-app/ as the Kiro workspace, with this terminal's JDK
+git clone https://github.com/timwukp/Java-framework-upgrade-workshop-v2.git
+cd Java-framework-upgrade-workshop-v2/sample-app
+mvn -B clean verify       # expect Tests run: 14 and BUILD SUCCESS
+../scripts/check-env.sh   # am I ready? every line should say PASS
+kiro .                    # opens sample-app/ as the Kiro workspace, with this terminal's JDK
 ```
 
 The workspace is the **`sample-app/` folder**, not the repository root. Trust it, then start
@@ -64,46 +78,32 @@ it again from that terminal with `kiro .`.
 
 ## Repository layout
 
-```text
-README.md
-docs/
-  agenda.md                  Timetable, what to skip if running late
-  participant-setup.md       Install JDK 8/21/25, Maven, Kiro; baseline build
-  instructor-guide.md        Dry run, run of show, room control, troubleshooting
-  quick-reference.md         Day sheet: stages, JDKs, hooks, scripts, expected results
-  troubleshooting.md         Every known symptom, its cause and fix, with stable IDs
-  migration-cheat-sheet.md   What changes at each stage, and why
-  kiro-feature-reference.md  Every Kiro feature used, its file format and docs link
-  verification-log.md        What the dry runs verified, and what is still unverified
-modules/
-  01-setup-and-assessment.md
-  02-runway-boot27-java21.md
-  03-spring-boot-3.md
-  04-spring-boot-4-java25.md
-  05-quality-gates.md
-  06-platform-deployment.md   (optional)
-  07-scale-out-cli-web.md     (optional)
-sample-app/                  Open this folder in Kiro. The legacy starting point (stage 0).
-  .kiro/steering/            migration-standards, migration-playbook, pom-rules, test-rules
-  .kiro/hooks/               verify-after-spec-task, jakarta-import-guard
-  .kiro/agents/              migration-reviewer
-  .kiro/skills/              jakarta-namespace-migration, spring-security-lambda-dsl
-powers/java-modernization/   A Kiro power (Agent Plugins format) imported in Module 4
-solutions/                   Reference state after stages 1, 2 and 3, and the one reset procedure
-                             (outside the workspace on purpose)
-scripts/                     Helpers you run from sample-app/: check-env, verify-stage,
-                             compare-stage, reset-to-stage, smoke (see scripts/README.md)
-tools/                       Maintainer checks for the docs and the scripts
-```
+| Path | What it is |
+|---|---|
+| [`modules/`](modules/) | The seven modules: [1](modules/01-setup-and-assessment.md) · [2](modules/02-runway-boot27-java21.md) · [3](modules/03-spring-boot-3.md) · [4](modules/04-spring-boot-4-java25.md) · [5](modules/05-quality-gates.md) · [6 (optional)](modules/06-platform-deployment.md) · [7 (optional)](modules/07-scale-out-cli-web.md) |
+| [`sample-app/`](sample-app/) | **Open this folder in Kiro.** The legacy starting point (stage 0), with the workshop's `.kiro/` steering, hooks, custom agent and skills |
+| [`docs/participant-setup.md`](docs/participant-setup.md) | Install JDK 8/21/25, Maven and Kiro; baseline build; pre-download |
+| [`docs/quick-reference.md`](docs/quick-reference.md) | Day sheet: stages, JDKs, hooks, scripts, expected results |
+| [`docs/troubleshooting.md`](docs/troubleshooting.md) | Every known symptom, its cause and fix, with stable IDs |
+| [`docs/migration-cheat-sheet.md`](docs/migration-cheat-sheet.md) | What changes at each stage, and why |
+| [`docs/kiro-feature-reference.md`](docs/kiro-feature-reference.md) | Every Kiro feature used, its file format and docs link |
+| [`docs/agenda.md`](docs/agenda.md) | Timetable, and what to skip if running late |
+| [`docs/instructor-guide.md`](docs/instructor-guide.md) | Dry run, run of show, room control |
+| [`docs/verification-log.md`](docs/verification-log.md) | What the dry runs verified, and what is still unverified |
+| [`scripts/`](scripts/README.md) | Helpers you run from `sample-app/`: `check-env`, `verify-stage`, `compare-stage`, `reset-to-stage`, `smoke` |
+| [`solutions/`](solutions/README.md) | Reference state after stages 1, 2 and 3, and the one reset procedure (outside the workspace on purpose) |
+| [`powers/java-modernization/`](powers/java-modernization/README.md) | A Kiro power (Agent Plugins format) imported in Module 4 |
+| [`tools/`](tools/) | Maintainer checks for the docs and the scripts |
 
 ## Prerequisites
 
 - **macOS or Linux.** The hooks and the commands in the modules are POSIX shell. On Windows, use a
   Linux VM or a cloud desktop (WSL2 is untested).
-- JDK 8, 21 and 25 (for example [Amazon Corretto](https://aws.amazon.com/corretto/)), Maven 3.9+, Git,
-  `python3` and `curl`
-- [Kiro IDE](https://kiro.dev/docs/getting-started/installation/) 1.x and an account. A full day
-  uses more than the Free plan's monthly credits; see [participant-setup.md](docs/participant-setup.md).
+- JDK 8, 21 and 25 (for example [Amazon Corretto](https://aws.amazon.com/corretto/)), Maven 3.9+, Git
+  2.23+, `python3` and `curl`
+- [Kiro IDE](https://kiro.dev/docs/getting-started/installation/) 1.x and a paid plan or an organization
+  seat: a full day uses more than the Free plan's monthly credits (see
+  [participant-setup.md](docs/participant-setup.md)).
 - Comfortable reading Java and Spring code. No prior Kiro experience needed.
 
 ## Security notes
