@@ -41,9 +41,11 @@ material where reality differs. The build and test items marked done were covere
   every command succeeds and the cache check lists the four Spring Boot versions. Covered:
   [2026-10-10 EC2 dry run](verification-log.md).
 - [ ] Repeat the build items once on **macOS**; the dry run was Linux only.
-- [ ] The learner scripts: `tools/test-scripts.sh` (quick) on macOS, and `tools/test-scripts.sh --full`
-  on Linux with `JAVA8_HOME`, `JAVA21_HOME` and `JAVA25_HOME` set.
-- [ ] Time section 7 on an empty `~/.m2` on the training network.
+- [x] The learner scripts: `tools/test-scripts.sh --full` on Linux (46 of 46). Covered:
+  [2026-10-12 EC2 run](verification-log.md#2026-10-12-learner-scripts-and-onboarding-on-ec2-round-3).
+- [ ] `tools/test-scripts.sh --full` once on **macOS** (the quick mode passed there).
+- [ ] Time section 7 on an empty `~/.m2` on the training network. For comparison: 111 s and 383 MB on
+  EC2's network (2026-10-12 run).
 - [ ] Maven Central (or your internal mirror) is reachable from the training network. Corporate proxies are the most common blocker.
 
 **Kiro** (all open; the dry run ran the hook commands only as plain shell commands, outside Kiro)
