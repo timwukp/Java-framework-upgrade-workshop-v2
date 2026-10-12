@@ -109,6 +109,27 @@ Error bodies seen for a duplicate e-mail:
 - stage 2: `ProblemDetail` with `"type":"about:blank"`;
 - stage 3: `ProblemDetail` without `type`. Jackson 3 also writes JSON properties in alphabetical order.
 
+## 2026-10-12: learner scripts and onboarding on EC2 (round 3)
+
+Same locked-down setup as the 2026-10-10 run (Amazon Linux 2023, Corretto 8 / 21 / 25, Maven 3.9.11; no
+inbound access, SSM only, encrypted disk; the instance, security group and IAM role were deleted
+afterwards). It tested the branch that holds all six usability parts.
+
+| Check | Result |
+|---|---|
+| `tools/test-scripts.sh --full` | ✅ 46 of 46 checks |
+| … argument, refusal, reset and `compare-stage` checks; `smoke.sh` without a password or app, and never printing the password | ✅ 31 of 31 (as on macOS) |
+| … `verify-stage.sh` 0 / 1 / 2 / 3 on JDK 8 / 21 / 21 / 25, and stage 3 on JDK 21 (`--jdk 21`) | ✅ exit 0, `Tests run: 14, Failures: 0, Errors: 0, Skipped: 0` |
+| … wrong JDK; the bare Boot 2.7 bump (`Tests run: 0`); no validation starter (400 vs 201); `@AllArgsConstructor` back on stage 3 | ✅ exit 3, 1, 1, 1: each state is reported as a failure |
+| … `smoke.sh` against the running app at stages 0, 1, 2 and 3 | ✅ all checks pass, trailing slash 200 / 200 / 404 / 404 |
+| … `check-env.sh --stage 3` on JDK 25 | ✅ no FAIL |
+| Module 3, Exercise 3.12 state: the stage-2 reference with the old `server.max-http-header-size` key and the properties migrator | ✅ the migrator's ERROR report names the key; `smoke.sh --stage 2` passes all 10 checks |
+| Participant setup as a new Linux user with an empty `~/.m2` | ✅ section 6: `Tests run: 14` on JDK 8 in 31 s; section 7: all five commands succeed in 111 s and the cache lists `2.2.4.RELEASE`, `2.7.18`, `3.5.16`, `4.1.1` (383 MB in `~/.m2`); section 9: `check-env.sh` shows no FAIL (only the `kiro` warning: Kiro isn't installed on the instance) |
+| `tools/check-docs.py` on Linux | ✅ 0 errors |
+
+The download times are from EC2's network; a laptop on a shared or proxied network takes longer, so the
+setup still asks for the pre-download before the day.
+
 ## Still unverified
 
 - **Everything inside Kiro** (list below).
@@ -116,9 +137,7 @@ Error bodies seen for a duplicate e-mail:
   the minutes per exercise are carried over from the previous layout, and Module 3's split of the
   run-the-app exercise (3.12 and 3.13) and its skill skeleton (3.14) are estimates.
 - **Module 6 platform deployments** (WAR on WildFly / Open Liberty, containers, z/OS) were not run.
-- **The learner scripts** (`scripts/`, added 2026-10-11): argument handling, refusals, resets and the
-  password handling pass `tools/test-scripts.sh` (quick mode); the real builds and smoke tests at every
-  stage (`--full`) are the next EC2 run.
+- **The learner scripts on macOS** beyond the quick mode: the full builds ran on Linux (round 3).
 
 ### Unconfirmed in a Kiro build
 
