@@ -1,10 +1,60 @@
-# Quick reference
+# Day sheet (quick reference)
 
-Full details and docs links: [kiro-feature-reference.md](kiro-feature-reference.md).
+One page for the workshop day. More: [migration cheat sheet](migration-cheat-sheet.md) (what changes
+at each stage) · [troubleshooting](troubleshooting.md) (symptoms and fixes) ·
+[Kiro feature reference](kiro-feature-reference.md) (features, file formats, docs links) ·
+[scripts](../scripts/README.md).
 
-## Kiro
+## The day at a glance
 
-### Start the right kind of session
+Every stage has **14 tests** (9 service + 5 web). Run everything from `sample-app/`.
+
+| Module | Starts from | JDK | Hooks (verify / guard) | Ends with tag |
+|---|---|---|---|---|
+| 1 Setup and assessment | the baseline | 8 | on / off | `stage-0` |
+| 2 Spring Boot 2.7 + Java 21 | `stage-0` | 8, then **21** in the JDK-switch step | on / off | `stage-1` |
+| 3 Spring Boot 3.5 + Jakarta EE | `stage-1` | 21 | guard **on** at the start (stays on); verify **paused** while the build is red on purpose, **on** again before the end | `stage-2` |
+| 4 Spring Boot 4.1 + Java 25 | `stage-2` | 21, then **25** in the Java 25 part | on / on | `stage-3` |
+| 5 Quality gates | `stage-3` | 25 | on / on (verify paused only for the Bugfix demo or lab) | `stage-3-final` |
+| 6, 7 (optional) | `stage-3-final` | 25 | on / on | — |
+
+"verify" is `verify-after-spec-task`, "guard" is `jakarta-import-guard`. Switch hooks with the eye
+icon in the Agent Hooks panel.
+
+**JDK switch (Modules 2 and 4, and after a reset):** make the new JDK the default for new terminals,
+quit Kiro completely, open a new terminal in `sample-app/`, start Kiro with `kiro .`, and ask the
+agent for `mvn -v`. How: [Switch the JDK per terminal](participant-setup.md#switch-the-jdk-per-terminal).
+
+## Scripts
+
+| Command (from `sample-app/`) | Does |
+|---|---|
+| `../scripts/check-env.sh --stage N` | Tools, JDK of terminal and Maven, Maven cache, steering and hook files. No build. |
+| `../scripts/verify-stage.sh N` | One clean build; passes only with the right JDK and parent and `Tests run: 14, Failures: 0, Errors: 0, Skipped: 0` |
+| `../scripts/compare-stage.sh N` | Your `pom.xml` and `src/` against the stage 1, 2 or 3 reference |
+| `../scripts/reset-to-stage.sh N` | Catch up: reference `pom.xml` and `src/` for stage 0, 1, 2, 3 or `3-final`; prints the steps you type next |
+| `../scripts/smoke.sh` | The running-app checks below; needs `APP_ADMIN_PASSWORD` exported |
+
+Git commits and tags, JDK switches, Kiro restarts and hook switches stay manual: they are part of
+what you learn.
+
+## Every time
+
+- **Supervised** mode (`kiroAgent.agentAutonomy`): review each hunk before it is applied.
+- **Commit before every agent run.** Kiro checkpoints don't capture shell commands (Maven, OpenRewrite)
+  or manual edits.
+- **One build at a time.** After a spec task, read the hook's result in the Kiro output, or run Maven
+  yourself only after the hook has finished (builds share `target/`).
+- **Always `clean`** (`mvn -B clean verify`): otherwise Maven may skip the recompile after a JDK or
+  version change and hide a trap.
+- **Read your own `Tests run`.** A green build with fewer tests is a failed step.
+- **After a JDK switch**, quit Kiro and start it from that terminal with `kiro .`.
+- **Trust** the workspace, or repo steering, agents and skills won't load. Approve `mvn *` once with
+  **Always allow** for this workspace; never pre-approve deploy or push.
+- After a review by `migration-reviewer`, run `git status`: it has no `write` tool, but it has `shell`.
+
+## Start the right kind of session
+
 | You want to… | Use |
 |---|---|
 | Understand the code without changing anything | **Plan** workflow (read-only) |
@@ -14,115 +64,43 @@ Full details and docs links: [kiro-feature-reference.md](kiro-feature-reference.
 | Ask questions, iterate freely | Default agent |
 | A specialist | Agent selector → `migration-reviewer` |
 
-### Context in chat
-`#codebase` · `#file` (type `#` plus a file name) · `#folder` · `#git diff` · `#terminal` · `#problems` ·
-`#spec` · `#steering` · `#docs` · `#url` · `#code` · `#current` · `#repository` · `#mcp`.
-Select code and press **Cmd/Ctrl+L** to add it to the chat.
+Context in chat: `#codebase` · `#file` (type `#` plus a file name) · `#folder` · `#git diff` ·
+`#terminal` · `#problems` · `#spec` · `#steering` · `#docs` · `#url` · `#code` · `#current` ·
+`#repository` · `#mcp`. Select code and press **Cmd/Ctrl+L** to add it to the chat.
 
-### Safety habits
-- **Supervised** mode (`kiroAgent.agentAutonomy`) lets you review each hunk before it is applied.
-- **Commit before every agent run.** Checkpoints don't capture shell commands (Maven, OpenRewrite) or
-  manual edits.
-- **Trust** the workspace, or repo steering, agents and skills won't load.
-- Approve `mvn *` once with **Always allow** for this workspace. Never pre-approve deploy or push.
-- **One build at a time.** After a spec task, read the hook's result in the Kiro output, or run Maven
-  yourself only after the hook has finished (builds share `target/`).
-- **After a JDK switch**, quit Kiro and start it from that terminal with `kiro .`.
-- **Always `clean`** (`mvn -B clean verify`): otherwise Maven may skip the recompile after a JDK or
-  version change and hide a trap.
-- After a review by `migration-reviewer`, run `git status`: it has no `write` tool, but it has `shell`.
+## What the running app answers
 
-### File formats
-`.kiro/steering/<name>.md`. The front matter must be the very first lines:
+`../scripts/smoke.sh` checks these, or call them with `curl -u admin:"$APP_ADMIN_PASSWORD" …`:
 
-```yaml
----
-inclusion: fileMatch          # always | fileMatch | manual | auto
-fileMatchPattern: "**/pom.xml"
----
-```
+| Request | Stages 0–1 | Stages 2–3 |
+|---|---|---|
+| `GET /api/users` without credentials | 401 | 401 |
+| `GET /api/users` as admin | 200, with an `X-Request-Id` header | 200, with an `X-Request-Id` header |
+| `POST /api/users` with an invalid e-mail | 400 | 400 |
+| `POST /api/users` with name and e-mail only | 201, `"active":true`, ISO-8601 `createdDate` | 201, `"active":true`, ISO-8601 `createdDate` |
+| The same e-mail again | 400 | 400 |
+| `GET /api/users/999999` | 404 | 404 |
+| `GET /api/users/` (trailing slash) | 200 | **404** (Spring Framework 6+) |
 
-`.kiro/hooks/<name>.json`:
+Class-file major version (`javap -v … | grep "major version"`): **52** Java 8 · **65** Java 21 ·
+**69** Java 25.
 
-```json
-{ "version": "v1", "hooks": [ { "name": "verify", "trigger": "PostTaskExec",
-  "action": { "type": "command", "command": "mvn -q -B clean verify 1>&2" }, "timeout": 900 } ] }
-```
-The shipped `verify-after-spec-task.json` does more: one `mvn -B clean verify`, the `Tests run` line
-and `BUILD SUCCESS` to the agent on success, the last 80 lines on stderr on failure.
-Triggers: `SessionStart` `Stop` `UserPromptSubmit` `PreTaskExec` `PostTaskExec` `PreToolUse`
-`PostToolUse` `PostFileCreate` `PostFileSave` `PostFileDelete`. A command action that exits with `2`
-blocks `PreToolUse`, `UserPromptSubmit` and `PreTaskExec`. On failure, **stderr** goes to the agent.
+## Most common problems
 
-`.kiro/skills/<name>/SKILL.md`. `name` must equal the folder name:
-
-```markdown
----
-name: junit4-to-jupiter
-description: What it does and when to use it (this text drives automatic activation).
----
-```
-
-`.kiro/agents/<name>.md`. The front matter is the config and the body is the system prompt:
-
-```markdown
----
-name: migration-reviewer
-description: Reviewer. No write tool; instructed not to modify files
-tools: ["read", "shell"]
-resources:
-  - "file://.kiro/steering/**/*.md"
----
-```
-
-`powers/<name>/plugin.json`, plus `skills/` and an optional `mcp.json`:
-
-```json
-{ "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
-  "name": "java-modernization", "version": "1.0.0", "description": "…",
-  "author": { "name": "…" }, "keywords": ["spring boot 4", "java 25"] }
-```
-
-## Migration cheat sheet
-
-### Stage 1: Spring Boot 2.2.4 → 2.7.18, JDK 8 → 21
-| Change | Why |
+| Symptom | Go to |
 |---|---|
-| Parent `2.7.18` | Last 2.x line; compatible up to Java 21 |
-| Add `spring-boot-starter-validation` | Since Boot 2.3 it isn't in the web starter; `@Valid` is silently ignored without it |
-| Add `junit-vintage-engine` (test) | Since Boot 2.4 it isn't in starter-test; JUnit 4 tests silently stop running |
-| Remove the Lombok pin | 1.18.10 can't run on JDK 16+; Boot 2.7.18 manages 1.18.30 (first with JDK 21 support) |
-| `java.version` 21 | — |
-| No `byte-buddy.version` override | Not needed: stage 1 passes on Corretto 21 with Boot's Byte Buddy 1.12.23 (verified in the 2026-10-10 dry run). Troubleshooting only: if Mockito/Hibernate fails naming Byte Buddy and Java 21, override `byte-buddy.version` |
+| `BUILD SUCCESS` but `Tests run: 0` | [T-B01](troubleshooting.md#t-b01-build-success-but-tests-run-0-or-no-tests-run-line) |
+| Tests run is lower than 14 | [T-B02](troubleshooting.md#t-b02-tests-run-is-lower-than-14) |
+| `expected:<400> but was:<201>` | [T-B03](troubleshooting.md#t-b03-invaliduserisrejectedbybeanvalidation-expected400-but-was201) |
+| Random compile or Surefire errors | [T-B04](troubleshooting.md#t-b04-random-compile-or-surefire-errors-that-go-away-on-a-rerun-or-a-corrupt-jar) |
+| The agent's Java isn't your terminal's | [T-A02](troubleshooting.md#t-a02-the-agents-or-the-hooks-java-is-not-your-terminals) |
+| The verify hook never runs | [T-K15](troubleshooting.md#t-k15-the-verify-hook-never-runs) |
+| `cannot find symbol` for getters on JDK 25 | [T-B11](troubleshooting.md#t-b11-cannot-find-symbol-for-getters-setters-or-constructors-on-jdk-25) |
+| Every create returns 400 on Spring Boot 4 | [T-B12](troubleshooting.md#t-b12-validuseriscreated-status-expected201-but-was400-every-create-returns-400) |
+| A web test gets 403 | [T-B13](troubleshooting.md#t-b13-a-web-test-gets-403-instead-of-400-or-201) |
+| Behind or stuck | [T-X04](troubleshooting.md#t-x04-you-are-behind-or-your-workspace-is-broken) |
 
-### Stage 2: Spring Boot 2.7.18 → 3.5.x (Java 21)
-| Before | After |
-|---|---|
-| `javax.persistence/validation/servlet/inject/transaction.*` | `jakarta.*` (JDK `javax.sql`, `javax.crypto`, `javax.transaction.xa`… stay) |
-| `extends WebSecurityConfigurerAdapter` | `@Bean SecurityFilterChain` + lambda DSL |
-| `inMemoryAuthentication()` | `@Bean UserDetailsService` → `InMemoryUserDetailsManager` |
-| `authorizeRequests` / `antMatchers` | `authorizeHttpRequests` / `requestMatchers` |
-| `server.max-http-header-size` | `server.max-http-request-header-size` |
-| `hibernate.dialect` property | Usually not needed with Hibernate 6 |
-| JUnit 4 + Vintage | JUnit Jupiter only |
-| (web tests) | `@Import(SecurityConfig.class)` if security no longer applies in `@WebMvcTest` |
-
-### Stage 3: Spring Boot 3.5.x → 4.1.x, Java 21 → 25
-| Before | After |
-|---|---|
-| `spring-boot-starter-web` | `spring-boot-starter-webmvc` |
-| `spring-boot-starter-test` only | `spring-boot-starter-webmvc-test`, `spring-boot-starter-security-test` |
-| `org.springframework.boot.test.mock.mockito.MockBean` | `org.springframework.test.context.bean.override.mockito.MockitoBean` |
-| `org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest` | `org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest` |
-| `Jackson2ObjectMapperBuilderCustomizer` | `spring.jackson.*` properties, or `JsonMapperBuilderCustomizer` |
-| `com.fasterxml.jackson.databind.*` | `tools.jackson.databind.*` (annotations unchanged) |
-| `.and()` / non-lambda security DSL | Lambda DSL only (Spring Security 7) |
-| `java.version` 21 | 25 (Lombok ≥ 1.18.40) |
-| Lombok only as a `provided` dependency | Also in `maven-compiler-plugin` `annotationProcessorPaths` (`${lombok.version}`): since JDK 23, javac no longer runs annotation processors it finds only on the class path |
-| Lombok `@AllArgsConstructor` on `User` | Remove it: with Jackson 3 it makes every POST return 400 (`active` missing from the JSON); `validUserIsCreated` catches it |
-
-## Commands
-Expected test count at every stage: `Tests run: 14` (9 service + 5 web). Read your own number anyway.
+## Raw commands
 
 ```bash
 mvn -B clean verify

@@ -34,6 +34,60 @@ are authoritative.
 | Plans and credits | Free: 50 credits/month. Paid tiers: Pro, Pro+, Pro Max, Power. Models have credit multipliers (Auto = 1.0x). | [Pricing](https://kiro.dev/pricing/), [Models](https://kiro.dev/docs/models/available-models/) |
 | Data protection | Enterprise content is not used for service improvement. Free and individual-tier content may be used unless you opt out. | [Data protection](https://kiro.dev/docs/privacy-and-security/data-protection/) |
 
+## File formats
+
+The Kiro files this workshop uses, in their minimal form.
+
+`.kiro/steering/<name>.md`. The front matter must be the very first lines:
+
+```yaml
+---
+inclusion: fileMatch          # always | fileMatch | manual | auto
+fileMatchPattern: "**/pom.xml"
+---
+```
+
+`.kiro/hooks/<name>.json`:
+
+```json
+{ "version": "v1", "hooks": [ { "name": "verify", "trigger": "PostTaskExec",
+  "action": { "type": "command", "command": "mvn -q -B clean verify 1>&2" }, "timeout": 900 } ] }
+```
+The shipped `verify-after-spec-task.json` does more: one `mvn -B clean verify`, the `Tests run` line
+and `BUILD SUCCESS` to the agent on success, the last 80 lines on stderr on failure.
+Triggers: `SessionStart` `Stop` `UserPromptSubmit` `PreTaskExec` `PostTaskExec` `PreToolUse`
+`PostToolUse` `PostFileCreate` `PostFileSave` `PostFileDelete`. A command action that exits with `2`
+blocks `PreToolUse`, `UserPromptSubmit` and `PreTaskExec`. On failure, **stderr** goes to the agent.
+
+`.kiro/skills/<name>/SKILL.md`. `name` must equal the folder name:
+
+```markdown
+---
+name: junit4-to-jupiter
+description: What it does and when to use it (this text drives automatic activation).
+---
+```
+
+`.kiro/agents/<name>.md`. The front matter is the config and the body is the system prompt:
+
+```markdown
+---
+name: migration-reviewer
+description: Reviewer. No write tool; instructed not to modify files
+tools: ["read", "shell"]
+resources:
+  - "file://.kiro/steering/**/*.md"
+---
+```
+
+`powers/<name>/plugin.json`, plus `skills/` and an optional `mcp.json`:
+
+```json
+{ "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "java-modernization", "version": "1.0.0", "description": "…",
+  "author": { "name": "…" }, "keywords": ["spring boot 4", "java 25"] }
+```
+
 ## What older material often gets wrong
 
 | Claim seen in older guides | Current reality | Docs |
