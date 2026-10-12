@@ -1,5 +1,7 @@
 # Java Modernization Workshop with Kiro
 
+**English** · [中文（台灣）](README.zh-TW.md)
+
 A one-day, hands-on workshop: take a legacy **Java 8 + Spring Boot 2.2** service to
 **Java 25 + Spring Boot 4.1 (Spring Framework 7)** in safe, verifiable stages, using
 [Kiro](https://kiro.dev) specs, steering, hooks, skills, custom agents and powers.
@@ -83,7 +85,7 @@ it again from that terminal with `kiro .`.
 | [`modules/`](modules/) | The seven modules: [1](modules/01-setup-and-assessment.md) · [2](modules/02-runway-boot27-java21.md) · [3](modules/03-spring-boot-3.md) · [4](modules/04-spring-boot-4-java25.md) · [5](modules/05-quality-gates.md) · [6 (optional)](modules/06-platform-deployment.md) · [7 (optional)](modules/07-scale-out-cli-web.md) |
 | [`sample-app/`](sample-app/) | **Open this folder in Kiro.** The legacy starting point (stage 0), with the workshop's `.kiro/` steering, hooks, custom agent and skills |
 | [`docs/participant-setup.md`](docs/participant-setup.md) | Install JDK 8/21/25, Maven and Kiro; baseline build; pre-download |
-| [`docs/quick-reference.md`](docs/quick-reference.md) | Day sheet: stages, JDKs, hooks, scripts, expected results |
+| [`docs/quick-reference.md`](docs/quick-reference.md) | Day sheet: stages, JDKs, hooks, scripts, expected results ([中文](docs/cheat-sheet.zh-TW.md)) |
 | [`docs/troubleshooting.md`](docs/troubleshooting.md) | Every known symptom, its cause and fix, with stable IDs |
 | [`docs/migration-cheat-sheet.md`](docs/migration-cheat-sheet.md) | What changes at each stage, and why |
 | [`docs/kiro-feature-reference.md`](docs/kiro-feature-reference.md) | Every Kiro feature used, its file format and docs link |
@@ -93,7 +95,7 @@ it again from that terminal with `kiro .`.
 | [`scripts/`](scripts/README.md) | Helpers you run from `sample-app/`: `check-env`, `verify-stage`, `compare-stage`, `reset-to-stage`, `smoke` |
 | [`solutions/`](solutions/README.md) | Reference state after stages 1, 2 and 3, and the one reset procedure (outside the workspace on purpose) |
 | [`powers/java-modernization/`](powers/java-modernization/README.md) | A Kiro power (Agent Plugins format) imported in Module 4 |
-| [`tools/`](tools/) | Maintainer checks for the docs and the scripts |
+| [`tools/`](tools/README.md) | Maintainer checks for the docs and the scripts, and how to write a module |
 
 ## Prerequisites
 
