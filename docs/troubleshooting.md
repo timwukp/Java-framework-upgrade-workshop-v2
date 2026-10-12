@@ -560,7 +560,7 @@ session. CLI: `/settings` → Features, then restart.
 
 ### T-S03 The sandbox lacks Java 25 or Maven, or can't download dependencies
 **Cause:** runtime selection isn't documented; internet access is restricted.
-**Fix:** stop. Review the environment configuration and internet access, then repeat the dry run.
+**Fix:** stop. Review the environment configuration and internet access, then repeat the trial run.
 
 ### T-S04 **Import power from GitHub** fails
 **Cause:** a private repository, or the URL doesn't point at the power's package root.
