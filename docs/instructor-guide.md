@@ -66,7 +66,7 @@ material where reality differs. The build and test items marked done were covere
   key moment (the hook catching the `@Valid` failure) depends on it. Result: ______
 - [ ] **Do hook commands go through permission prompts?** In Autopilot with the guard enabled, let the
   agent save a Java file; with the Module 5 hook installed, let the agent run a shell command. If either
-  raises an approval, add "Always allow" steps for the exact hook commands to Module 3 Exercise 1.3 and
+  raises an approval, add "Always allow" steps for the exact hook commands to Module 3 Exercise 3.3 and
   Module 5 Exercise 5.3. Result: ______
 - [ ] Run one spec task: the hook runs one `mvn -B clean verify`; on success the agent quotes the
   `Tests run` line, on failure it gets the last 80 lines. Note how the output panel shows that the hook
@@ -114,13 +114,13 @@ Every demo is **inside** the module's time box and takes at most 5 minutes.
 | 09:15 | Module 1, Exercises 1.1–1.4 demo: Plan workflow with `#codebase`; Supervised mode; checkpoint vs git | Module 1 |
 | 10:30 | Module 2, Exercises 2.2–2.3 demo: create the stage-1 spec and review the requirements together before any task runs | Module 2 |
 | 13:00 | Module 3 demo: the guard hook catching a `javax` import; skill activation | Module 3 |
-| 15:00 | Module 4, Part 1 demo: import the power (this is also Exercise 1.2's fallback); a Plan session for Boot 4 | Module 4 |
+| 15:00 | Module 4, Exercise 4.3 demo: a Plan session for Boot 4 with the power (everyone imports the power themselves in Exercise 4.2: it is per user) | Module 4 |
 | 16:35 | Module 5, Part 3 demo: Bugfix spec on the CSRF regression, with `verify-after-spec-task` paused and then re-enabled | Module 5 |
 | 16:50 | Retrospective: which traps did the build catch, which did only the test count catch? | — |
 
 Facilitation tips:
 - Ask participants to keep **Supervised** mode on and to reject at least one hunk per module. The point
-  is reviewing agent output, not watching it. The one deliberate exception is Module 3, Part 3: the
+  is reviewing agent output, not watching it. The one deliberate exception is Module 3, Exercises 3.7–3.8: the
   mechanical `javax` → `jakarta` rename runs in Autopilot, with the compiler, the guard hook and git as
   the safety net. Switch back to Supervised for the security and test changes.
 - Every time a module says "record the test count", check a few screens. The expected number is 14,
@@ -169,8 +169,8 @@ stage's tag resets before the first exercise.
 |---|---|---|
 | 1 (09:15–10:15) | **09:40:** Exercise 1.9, with branch `workshop` and tag `stage-0` | Module 1 changes no code, so nothing to reset: do Exercise 1.8 now, then apply the module's cuts. Nobody leaves Module 1 without `stage-0`. |
 | 2 (10:30–12:00) | **11:25:** Exercise 2.10 (Switch the JDK) | Still in Exercise 2.7 (`@Valid`) or earlier: reset to stage 1 (row "Module 3"), then do only step 2 of Finish. |
-| 3 (13:00–14:45) | **14:10:** Exercise 5.1 (Write the skill), compiling, 14 tests on the Vintage engine | Still in Part 4: copy the reference skill (the Exercise 5.1 fallback). Not green with 14 tests by 14:35: reset to stage 2 (row "Module 4") in the break. |
-| 4 (15:00–16:20) | **15:50:** Exercise 4.1 (Switch to JDK 25 and restart Kiro) | Exercise 3.4 not green with 14 tests by 16:00: reset to stage 3 (row "Module 5") instead of finishing Part 4. |
+| 3 (13:00–14:45) | **14:10:** Exercise 3.14 (Write the skill), compiling, 14 tests on the Vintage engine | Still in Exercise 3.12 or earlier: copy the reference skill (the Exercise 3.14 fast path). Not green with 14 tests by 14:35: reset to stage 2 (row "Module 4") in the break. |
+| 4 (15:00–16:20) | **15:50:** Exercise 4.10 (Switch to JDK 25 and restart Kiro) | Exercise 4.9 not green with 14 tests by 16:00: reset to stage 3 (row "Module 5") instead of finishing Exercises 4.10–4.12. |
 | 5 (16:20–16:50) | **16:40:** everyone starts Exercise 5.4 (final verification), wherever they are | `mvn -B clean verify` not green: reset to stage 3 first. Part 2 and the Bugfix lab wait until after the day. |
 
 ### Announcements: hooks, JDK switches, Kiro restarts
@@ -180,12 +180,12 @@ stage's tag resets before the first exercise.
 | 09:00 | Hooks: `verify-after-spec-task` on, `jakarta-import-guard` off. Leave them until a module says otherwise. |
 | ~10:55, Module 2 Exercise 2.6 (first spec task) | One build at a time. After a task, read the hook's result in the Kiro output, or run Maven yourself only after the hook has finished (builds share `target/`). |
 | ~11:25, Module 2 Exercise 2.10 | JDK 21: make it the default, **quit Kiro**, start it from a new terminal with `kiro .`, check the agent's `mvn -v`. |
-| ~13:07, Module 3 Exercise 1.3 | Enable `jakarta-import-guard`. It stays on for the rest of the day. |
-| ~13:10, Module 3 Exercise 2.1 | Pause `verify-after-spec-task`: the build is red on purpose until Exercise 4.3. |
-| ~13:23, Module 3 Part 3 | Autopilot only for the mechanical rename (Exercises 3.2–3.3); back to Supervised in Exercise 3.4. |
-| ~14:05, Module 3 Exercise 4.3 | Re-enable `verify-after-spec-task`. Check a few Agent Hooks panels. |
+| ~13:07, Module 3 Exercise 3.3 | Enable `jakarta-import-guard`. It stays on for the rest of the day. |
+| ~13:10, Module 3 Exercise 3.4 | Pause `verify-after-spec-task`: the build is red on purpose until Exercise 3.13. |
+| ~13:23, Module 3 Exercise 3.7 | Autopilot only for the mechanical rename (Exercises 3.7–3.8); back to Supervised in Exercise 3.9. |
+| ~14:05, Module 3 Exercise 3.13 | Re-enable `verify-after-spec-task`. Check a few Agent Hooks panels. |
 | 15:00, Module 4 start | Both hooks on? Anyone who reset in the middle of Module 3 may still have the verify hook paused. |
-| ~15:50, Module 4 Exercise 4.1 | JDK 25: make it the default, **quit Kiro**, `kiro .`, check the agent's `mvn -v`. |
+| ~15:50, Module 4 Exercise 4.10 | JDK 25: make it the default, **quit Kiro**, `kiro .`, check the agent's `mvn -v`. |
 | ~16:28, Module 5 Exercise 5.3 | If Kiro asks to approve `echo mvn deploy`, choose **Allow**, not Always allow. |
 | 16:35, Module 5 Part 3 (you) | Pause `verify-after-spec-task` before the Bugfix demo and re-enable it after. Anyone doing the lab later does the same. |
 | After any reset | The row's JDK, a Kiro restart with `kiro .`, and the row's hook states. |
@@ -221,7 +221,7 @@ The complete list, by symptom, is [troubleshooting.md](troubleshooting.md). The 
 | Build green, fewer tests ran | JUnit Vintage engine missing (Boot 2.4+). The hook still passes; only the count shows it | See Module 2 |
 | `@Valid` accepts invalid input | `spring-boot-starter-validation` missing (Boot 2.3+) | See Module 2 |
 | Mockito or Hibernate errors that name Byte Buddy and Java 21 | Byte Buddy older than the JDK. Not seen with this app: stage 1 passes on Corretto 21 without an override (2026-10-10 dry run) | Troubleshooting only, on Boot 2.7: override `byte-buddy.version` (for example 1.17.8, the version Boot 3.5.16 manages). Later stages use the Boot-managed version |
-| Missing getters (`cannot find symbol`) on JDK 25 | Since JDK 23, javac no longer runs annotation processors found only on the class path | Declare Lombok in `maven-compiler-plugin` `annotationProcessorPaths` (Module 4, Part 4) |
+| Missing getters (`cannot find symbol`) on JDK 25 | Since JDK 23, javac no longer runs annotation processors found only on the class path | Declare Lombok in `maven-compiler-plugin` `annotationProcessorPaths` (Module 4, Exercise 4.11) |
 | Every POST returns 400 after the Boot 4 parent bump; `validUserIsCreated` fails with 400 instead of 201 | Jackson 3 binds the body through Lombok's `@AllArgsConstructor` and rejects the missing primitive `active` | Remove `@AllArgsConstructor` from `User` (Module 4) |
 | Web test returns 403 after the security migration | `@WebMvcTest` didn't load the `SecurityFilterChain` configuration | `@Import(SecurityConfig.class)` |
 | `mvn -v` shows the wrong Java | `JAVA_HOME` not switched | See [participant-setup.md](participant-setup.md#switch-the-jdk-per-terminal) |

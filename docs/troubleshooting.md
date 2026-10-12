@@ -201,7 +201,7 @@ then rerun the task.
 for the hook.
 
 ### T-K20 Tasks ran in parallel, or ahead of time
-**Symptoms:** **Run all Tasks** edits `pom.xml` in parallel tasks; Module 4's task 3 ran during Part 3.
+**Symptoms:** **Run all Tasks** edits `pom.xml` in parallel tasks; Module 4's task 3 ran before the JDK switch (Exercise 4.10).
 **Cause:** **Run all Tasks** runs independent tasks concurrently, in waves.
 **Fix:** make the tasks a chain, or run them one at a time from `tasks.md`. Revert work that ran too
 early (`git restore`, or **Restore**).

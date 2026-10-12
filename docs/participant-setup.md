@@ -60,7 +60,7 @@ is a Java 8 application.
 - Docs: [Kiro Java guide](https://kiro.dev/docs/guides/languages-and-frameworks/java-guide/)
 
 > **No JDK 25 approved yet?** Spring Boot 4.1 runs on Java 17 or later, so you can finish stage 3 on
-> JDK 21 with `java.version` 21. You skip only the Java 25 step (Module 4, Part 4). Tell the instructor
+> JDK 21 with `java.version` 21. You skip only the JDK switch (Module 4, Exercise 4.10; see its "No JDK 25" variant). Tell the instructor
 > before the day (self-paced: use Module 4's "No JDK 25" variant).
 
 Install the three JDKs with **one** of the options below.
